@@ -1,0 +1,31 @@
+/*
+ * Topbar.css — สไตล์แถบเมนูด้านบน (Top Bar)
+ * หมายเหตุ: อาจเป็น legacy component ที่ยังใช้ค่าสี hardcode
+ */
+
+/* === คอนเทนเนอร์หลัก === */
+.topbar-container {
+  width: 100%;                  /* เต็มความกว้าง */
+  height: 56px;                 /* ความสูงคงที่ */
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); /* gradient มืด */
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3); /* เงาด้านล่าง */
+  position: fixed;              /* ติดด้านบน */
+  top: 0;
+  left: 0;
+  z-index: 1100;                /* อยู่เหนือแผนที่ */
+  padding: 0 40px;
+  border-bottom: 1px solid rgba(255,255,255,0.06); /* เส้นแบ่งด้านล่าง */
+}
+
+/* === ชื่อระบบ === */
+.topbar-title {
+  font-size: 20px;
+  font-weight: 700;             /* ตัวหนา */
+  letter-spacing: -0.3px;
+  color: #e2e8f0;
+  margin: 0;
+}

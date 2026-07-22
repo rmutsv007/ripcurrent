@@ -1,0 +1,249 @@
+/*
+ * index.css — สไตล์หลักของแอปพลิเคชัน
+ * - CSS Custom Properties (ตัวแปรธีม) สำหรับ Dark/Light theme
+ * - Global reset & base styles
+ * - Circular reveal animation สำหรับเปลี่ยนธีม
+ * - Scrollbar styling
+ */
+
+/* ===== Theme Variables — ธีมมืด (Dark) ===== */
+/* ค่าเริ่มต้น (:root) และ [data-theme="dark"] ใช้สีเดียวกัน */
+:root,
+[data-theme="dark"] {
+  /* --- พื้นหลัง (Background) --- */
+  --c-bg-app: #0a0f1a;                        /* พื้นหลังแอปทั้งหมด */
+  --c-bg-primary: #0f172a;                    /* พื้นหลังหลัก (card, panel) */
+  --c-bg-secondary: #1e293b;                  /* พื้นหลังรอง */
+  --c-bg-hover: rgba(59,130,246,0.1);         /* พื้นหลัง hover state */
+  --c-bg-active: rgba(59,130,246,0.15);       /* พื้นหลัง active/selected state */
+  --c-bg-input: rgba(255,255,255,0.05);       /* พื้นหลังช่อง input */
+  --c-bg-input-focus: rgba(255,255,255,0.08); /* พื้นหลัง input เมื่อ focus */
+  --c-bg-subtle: rgba(255,255,255,0.03);      /* พื้นหลังอ่อนมาก */
+  --c-bg-icon: rgba(255,255,255,0.06);        /* พื้นหลังไอคอน */
+  --c-bg-icon-border: rgba(255,255,255,0.04); /* ขอบไอคอน */
+
+  /* --- ตัวอักษร (Text) --- */
+  --c-text: #e2e8f0;                          /* สีตัวอักษรหลัก */
+  --c-text-secondary: #94a3b8;                /* สีตัวอักษรรอง */
+  --c-text-muted: rgba(148,163,184,0.5);      /* สีตัวอักษรจาง */
+  --c-text-heading: #f1f5f9;                  /* สีหัวข้อ */
+
+  /* --- ขอบ (Border) --- */
+  --c-border: rgba(255,255,255,0.06);         /* ขอบทั่วไป */
+  --c-border-subtle: rgba(255,255,255,0.04);  /* ขอบบางมาก */
+  --c-border-input: rgba(255,255,255,0.1);    /* ขอบช่อง input */
+
+  /* --- สีเน้น (Accent — สีน้ำเงิน) --- */
+  --c-accent: #3b82f6;                        /* สีเน้นหลัก */
+  --c-accent-light: #60a5fa;                  /* สีเน้นอ่อน */
+  --c-accent-text: #60a5fa;                   /* สีตัวอักษรเน้น */
+  --c-accent-bg: rgba(59,130,246,0.15);       /* พื้นหลังเน้น */
+  --c-accent-border: rgba(59,130,246,0.2);    /* ขอบเน้น */
+  --c-accent-bg-hover: rgba(59,130,246,0.25); /* พื้นหลังเน้น hover */
+  --c-accent-badge-bg: rgba(59,130,246,0.1);  /* พื้นหลัง badge */
+
+  /* --- สีเขียว (Green — สถานะสำเร็จ) --- */
+  --c-green: #4ade80;                         /* สีเขียวหลัก */
+  --c-green-bg: rgba(22,163,74,0.15);         /* พื้นหลังเขียว */
+  --c-green-border: rgba(22,163,74,0.2);      /* ขอบเขียว */
+  --c-green-bg-hover: rgba(22,163,74,0.25);   /* พื้นหลังเขียว hover */
+
+  /* --- เงา (Shadow) --- */
+  --c-shadow: 0 2px 12px rgba(0,0,0,0.3);     /* เงาปกติ */
+  --c-shadow-lg: 0 4px 24px rgba(0,0,0,0.2);  /* เงาใหญ่ */
+  --c-shadow-card: 0 4px 20px rgba(0,0,0,0.4);/* เงาการ์ด */
+
+  /* --- ส่วนประกอบ UI (Component-specific) --- */
+  --c-header-start: #0f172a;                  /* gradient header เริ่ม */
+  --c-header-end: #1e293b;                    /* gradient header สิ้นสุด */
+  --c-sidebar-start: #0f172a;                 /* gradient sidebar เริ่ม */
+  --c-sidebar-end: #1e293b;                   /* gradient sidebar สิ้นสุด */
+  --c-popup-start: #1e293b;                   /* gradient popup เริ่ม */
+  --c-popup-end: #0f172a;                     /* gradient popup สิ้นสุด */
+  --c-popup-tip: #1e293b;                     /* สีหัวลูกศร popup */
+  --c-tooltip-bg: rgba(15,23,42,0.95);        /* พื้นหลัง tooltip */
+  --c-tooltip-text: #e2e8f0;                  /* สีตัวอักษร tooltip */
+  --c-tooltip-border: rgba(59,130,246,0.2);   /* ขอบ tooltip */
+  --c-zoom-start: #1e293b;                    /* gradient ปุ่ม zoom เริ่ม */
+  --c-zoom-end: #0f172a;                      /* gradient ปุ่ม zoom สิ้นสุด */
+  --c-zoom-hover-start: #1e3a5f;              /* gradient ปุ่ม zoom hover เริ่ม */
+  --c-zoom-hover-end: #1e293b;                /* gradient ปุ่ม zoom hover สิ้นสุด */
+  --c-zoom-text: #60a5fa;                     /* สีตัวอักษร ±zoom */
+  --c-attribution-bg: rgba(15,23,42,0.8);     /* พื้นหลัง attribution */
+  --c-attribution-text: rgba(148,163,184,0.5);/* สี attribution */
+  --c-logo-filter: brightness(1.1);           /* ฟิลเตอร์โลโก้ */
+  --c-check-border: rgba(148,163,184,0.3);    /* ขอบ checkbox */
+  --c-layer-name: rgba(226,232,240,0.9);      /* สีชื่อ layer */
+  --c-layer-name-active: #fff;                /* สีชื่อ layer ที่เลือก */
+  --c-scrollbar: rgba(148,163,184,0.2);       /* สี scrollbar */
+  --c-scrollbar-hover: rgba(148,163,184,0.35);/* สี scrollbar hover */
+  --c-sidebar-header: rgba(148,163,184,0.8);  /* สีหัวข้อ sidebar */
+  --c-footer-text: rgba(148,163,184,0.5);     /* สีข้อความ footer */
+  --c-toggle-start: #1e40af;                  /* gradient ปุ่ม toggle เริ่ม */
+  --c-toggle-end: #1d4ed8;                    /* gradient ปุ่ม toggle สิ้นสุด */
+  --c-toggle-hover-start: #1d4ed8;            /* gradient ปุ่ม toggle hover */
+  --c-toggle-hover-end: #2563eb;
+  --c-toggle-text: #fff;                      /* สีตัวอักษรปุ่ม toggle */
+}
+
+/* ===== Theme Variables — ธีมสว่าง (Light) ===== */
+/* override ค่าตัวแปรทั้งหมดเมื่อ data-theme="light" */
+[data-theme="light"] {
+  /* --- พื้นหลัง (Background) --- */
+  --c-bg-app: #f0f4f8;                        /* พื้นหลังแอป — สีเทาอ่อน */
+  --c-bg-primary: #ffffff;                    /* พื้นหลังหลัก — ขาว */
+  --c-bg-secondary: #f1f5f9;                  /* พื้นหลังรอง */
+  --c-bg-hover: rgba(59,130,246,0.06);        /* hover — น้ำเงินจาง */
+  --c-bg-active: rgba(59,130,246,0.1);        /* active/selected */
+  --c-bg-input: #f1f5f9;                      /* พื้นหลัง input */
+  --c-bg-input-focus: #e8edf3;                /* พื้นหลัง input focus */
+  --c-bg-subtle: rgba(0,0,0,0.02);            /* พื้นหลังอ่อนมาก */
+  --c-bg-icon: rgba(0,0,0,0.04);              /* พื้นหลังไอคอน */
+  --c-bg-icon-border: rgba(0,0,0,0.06);       /* ขอบไอคอน */
+
+  /* --- ตัวอักษร (Text) --- */
+  --c-text: #1e293b;                          /* สีตัวอักษรหลัก — เข้ม */
+  --c-text-secondary: #64748b;                /* สีตัวอักษรรอง */
+  --c-text-muted: rgba(100,116,139,0.5);      /* สีจาง */
+  --c-text-heading: #0f172a;                  /* สีหัวข้อ */
+
+  /* --- ขอบ (Border) --- */
+  --c-border: #e2e8f0;                        /* ขอบทั่วไป */
+  --c-border-subtle: #f1f5f9;                 /* ขอบบาง */
+  --c-border-input: #d1d5db;                  /* ขอบ input */
+
+  /* --- สีเน้น (Accent) — สีน้ำเงินเข้มกว่า dark --- */
+  --c-accent: #2563eb;
+  --c-accent-light: #3b82f6;
+  --c-accent-text: #2563eb;
+  --c-accent-bg: rgba(37,99,235,0.08);
+  --c-accent-border: rgba(37,99,235,0.15);
+  --c-accent-bg-hover: rgba(37,99,235,0.12);
+  --c-accent-badge-bg: rgba(37,99,235,0.08);
+
+  /* --- สีเขียว (Green) --- */
+  --c-green: #16a34a;
+  --c-green-bg: rgba(22,163,74,0.08);
+  --c-green-border: rgba(22,163,74,0.15);
+  --c-green-bg-hover: rgba(22,163,74,0.12);
+
+  /* --- เงา (Shadow) — เบากว่า dark --- */
+  --c-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  --c-shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
+  --c-shadow-card: 0 2px 12px rgba(0,0,0,0.08);
+
+  /* --- ส่วนประกอบ UI --- */
+  --c-header-start: #ffffff;                  /* gradient header — ขาว */
+  --c-header-end: #f8fafc;
+  --c-sidebar-start: #ffffff;                 /* gradient sidebar — ขาว */
+  --c-sidebar-end: #f8fafc;
+  --c-popup-start: #ffffff;                   /* popup */
+  --c-popup-end: #f8fafc;
+  --c-popup-tip: #ffffff;
+  --c-tooltip-bg: rgba(255,255,255,0.97);     /* tooltip — ขาว */
+  --c-tooltip-text: #1e293b;
+  --c-tooltip-border: #e2e8f0;
+  --c-zoom-start: #ffffff;                    /* ปุ่ม zoom */
+  --c-zoom-end: #f8fafc;
+  --c-zoom-hover-start: #f1f5f9;
+  --c-zoom-hover-end: #e2e8f0;
+  --c-zoom-text: #2563eb;
+  --c-attribution-bg: rgba(255,255,255,0.85); /* attribution */
+  --c-attribution-text: rgba(100,116,139,0.6);
+  --c-logo-filter: none;                      /* ไม่มีฟิลเตอร์โลโก้ */
+  --c-check-border: #d1d5db;                  /* ขอบ checkbox */
+  --c-layer-name: #374151;                    /* สีชื่อ layer */
+  --c-layer-name-active: #1e293b;
+  --c-scrollbar: rgba(148,163,184,0.3);       /* scrollbar */
+  --c-scrollbar-hover: rgba(148,163,184,0.5);
+  --c-sidebar-header: #64748b;                /* หัวข้อ sidebar */
+  --c-footer-text: rgba(100,116,139,0.6);     /* footer */
+  --c-toggle-start: #e2e8f0;                  /* ปุ่ม toggle — สีเทาอ่อน */
+  --c-toggle-end: #f1f5f9;
+  --c-toggle-hover-start: #d1d5db;
+  --c-toggle-hover-end: #e2e8f0;
+  --c-toggle-text: #1e293b;                   /* สีตัวอักษร toggle */
+}
+
+/* ===== Global Styles — รีเซ็ตและสไตล์พื้นฐาน ===== */
+
+/* รีเซ็ต margin/padding ทั้งหมด, ใช้ border-box */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===== Circular Reveal Animation — เอฟเฟกต์เปลี่ยนธีม ===== */
+/* สร้าง overlay สีพื้นของธีมใหม่ แล้วขยายวงกลมจากจุด click */
+.theme-reveal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;               /* สูงสุด — อยู่เหนือทุกอย่าง */
+  pointer-events: none;         /* ไม่รับ click ระหว่าง animation */
+  animation: circularReveal 0.6s ease-in-out forwards;
+}
+
+/* keyframes: วงกลมขยายจาก 0% → 150% ของหน้าจอ */
+@keyframes circularReveal {
+  from { clip-path: circle(0% at var(--reveal-x) var(--reveal-y)); }
+  to   { clip-path: circle(150% at var(--reveal-x) var(--reveal-y)); }
+}
+
+/* ให้ html, body, #root เต็มจอ */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+}
+
+/* สไตล์ body — ฟอนต์ Sarabun, สีจาก theme variable */
+body {
+  margin: 0;
+  font-family: 'Sarabun-Medium', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+  background: var(--c-bg-app);  /* สีพื้นหลักจาก theme */
+  color: var(--c-text);         /* สีตัวอักษรจาก theme */
+  -webkit-font-smoothing: antialiased;      /* ตัวอักษรคมชัด */
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;             /* ระยะห่างบรรทัด */
+}
+
+/* สไตล์ <code> — แสดงโค้ดในกรอบสี */
+code {
+  font-family: 'Courier New', monospace;
+  background: var(--c-bg-icon);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--c-accent-light);
+}
+
+/* ===== Scrollbar — แถบเลื่อนแบบบาง ===== */
+::-webkit-scrollbar {
+  width: 5px;                   /* ความกว้างแนวตั้ง */
+  height: 5px;                  /* ความสูงแนวนอน */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;      /* พื้นหลังโปร่งใส */
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--c-scrollbar); /* สีแถบเลื่อน */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-scrollbar-hover); /* สีเมื่อ hover */
+}
+
+/* ===== Button/Input Resets — สืบทอดฟอนต์ ===== */
+button {
+  font-family: inherit;         /* ใช้ฟอนต์เดียวกับ parent */
+}
+
+input, textarea, select {
+  font-family: inherit;         /* ใช้ฟอนต์เดียวกับ parent */
+}

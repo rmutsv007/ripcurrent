@@ -1,0 +1,40 @@
+/*
+ * Legend.css — สไตล์สำหรับรายการคำอธิบายสัญลักษณ์ (Legend)
+ * หมายเหตุ: อาจเป็น legacy เนื่องจาก Legend.js ใช้ inline styles แทน
+ */
+
+/* === แต่ละรายการสัญลักษณ์ === */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.04);     /* พื้นหลังโปร่งใสเล็กน้อย */
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.2s ease;
+}
+
+/* hover: เน้นสีน้ำเงิน */
+.legend-item:hover {
+  background: rgba(59,130,246,0.08);
+  border-color: rgba(59,130,246,0.15);
+}
+
+/* ไอคอนสัญลักษณ์ */
+.legend-item img {
+  width: 24px;
+  height: 24px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.08);
+  object-fit: contain;
+}
+
+/* ชื่อสัญลักษณ์ */
+.legend-item span {
+  font-size: 13px;
+  color: #e2e8f0;
+  font-weight: 500;
+}

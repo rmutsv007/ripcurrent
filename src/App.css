@@ -1,0 +1,150 @@
+/*
+ * App.css — สไตล์หลักของแอปพลิเคชัน
+ * ประกอบด้วย:
+ *   - Dashboard container + summary cards
+ *   - .App base component styles
+ *   - App-logo animation (CRA default)
+ * หมายเหตุ: บางส่วนอาจเป็น legacy — ส่วนใหญ่ใช้ inline styles ใน DashboardTable.js
+ */
+
+/* === Dashboard Container === */
+.dashboard-container {
+  background: #0f172a;          /* พื้นหลังมืด */
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  padding: 24px;
+  min-width: 320px;
+  max-width: 400px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* หัวข้อ dashboard */
+.dashboard-container h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: #e2e8f0;
+}
+
+/* === การ์ดสรุป (Summary Cards) === */
+.dashboard-container .dashboard-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 คอลัมน์ */
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.dashboard-container .dashboard-summary-card {
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* สีการ์ดแต่ละประเภท */
+.dashboard-container .dashboard-summary-card.total { background: rgba(100,116,139,0.1); color: #94a3b8; }
+.dashboard-container .dashboard-summary-card.active { background: rgba(34,197,94,0.08); color: #4ade80; }
+.dashboard-container .dashboard-summary-card.quarantine { background: rgba(239,68,68,0.08); color: #f87171; }
+.dashboard-container .dashboard-summary-card.animals { background: rgba(59,130,246,0.08); color: #60a5fa; }
+
+/* === รายการ Dashboard (List) === */
+.dashboard-container .dashboard-list {
+  margin-top: 24px;
+}
+
+/* หัวข้อรายการ */
+.dashboard-container .dashboard-list-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* แต่ละแถวรายการ */
+.dashboard-container .dashboard-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04); /* เส้นแบ่ง */
+}
+
+/* จุดสีกลม */
+.dashboard-container .dashboard-list-item .dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;           /* กลม */
+  background: #3b82f6;
+  display: inline-block;
+}
+
+/* ชื่อฟาร์ม */
+.dashboard-container .dashboard-list-item .name {
+  font-weight: 500;
+  color: #e2e8f0;
+  flex: 1;
+  font-size: 13px;
+}
+
+/* จำนวนสัตว์ */
+.dashboard-container .dashboard-list-item .animals {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* === Global Font Smoothing === */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === .App Base Styles === */
+.App {
+  text-align: center;
+  font-family: 'Sarabun-Medium', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', 'Roboto', 'Arial', sans-serif;
+  background: #0a0f1a;          /* พื้นหลังหลัก */
+  color: #e2e8f0;               /* สีตัวอักษรหลัก */
+}
+
+/* โลโก้ (CRA default) */
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+/* หมุนโลโก้ ถ้า prefers-reduced-motion ไม่ถูกจำกัด */
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+/* App Header (CRA default) */
+.App-header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: #e2e8f0;
+}
+
+/* ลิงก์สีน้ำเงิน */
+.App-link {
+  color: #3b82f6;
+}
+
+/* หมุนโลโก้ 360 องศา */
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

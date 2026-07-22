@@ -1,0 +1,10 @@
+@font-face {
+  font-family: 'Sarabun-Medium';
+  src: url('../public/fonts/Sarabun-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+body, html, .app-farmmap, .dashboard-table-container, .sidebar-container, .sidebar-content, .layer-item, .farmmap-header, .farmmap-title, .farmmap-card, .farmmap-detail, .farmmap-grid, .farmmap-sidebar, .farmmap-main, .farmmap-badge, .farmmap-header-icon, .farmmap-table, .farmmap-table th, .farmmap-table td {
+  font-family: 'Sarabun-Medium', sans-serif !important;
+}

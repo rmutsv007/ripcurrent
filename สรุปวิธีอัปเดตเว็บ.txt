@@ -1,0 +1,62 @@
+สรุปวิธีอัปเดตเว็บผ่าน GitHub + Cloudflare Pages และวิธีแก้ปัญหา npm ci/package-lock.json
+
+---
+
+1. วิธีอัปเดตเว็บผ่าน GitHub + Cloudflare Pages
+
+1.1 แก้ไขโค้ดในเครื่องของคุณ
+1.2 เพิ่มไฟล์ที่เปลี่ยนแปลงเข้า git
+    git add .
+1.3 สร้าง commit
+    git commit -m "อัปเดตโค้ด"
+1.4 อัปโหลด (push) ขึ้น GitHub
+    git push origin main
+1.5 Cloudflare Pages จะดึงโค้ดจาก GitHub อัตโนมัติ
+    - ระบบจะ build และ deploy เว็บใหม่ให้เอง
+
+---
+
+2. วิธีแก้ปัญหา npm ci/package-lock.json ไม่ sync
+
+ปัญหา:
+Cloudflare Pages build ไม่ผ่าน เพราะ package.json กับ package-lock.json ไม่ตรงกัน (เช่น มี package ใน package.json แต่ไม่มีใน lock file)
+
+วิธีแก้ไข:
+
+2.1 ติดตั้ง dependencies ให้ตรงกันในเครื่อง
+    - เปิด terminal ที่โฟลเดอร์โปรเจกต์
+    - รัน: npm install
+    - ถ้ามี error ว่า missing package (เช่น yaml@2.8.3) ให้รัน: npm install yaml@2.8.3
+
+2.2 ตรวจสอบว่าไฟล์ package-lock.json ถูกอัปเดต
+    - หลังจาก install จะมีการเปลี่ยนแปลงใน package-lock.json
+
+2.3 เพิ่มไฟล์เข้า git และ push ขึ้น GitHub
+    git add package.json package-lock.json
+    git commit -m "sync package-lock.json"
+    git push origin main
+
+2.4 รอให้ Cloudflare Pages build ใหม่
+    - ถ้าไม่มี error หน้าเว็บจะอัปเดตอัตโนมัติ
+
+---
+
+3. ข้อควรระวัง
+- อย่าลืม push ทั้ง package.json และ package-lock.json ทุกครั้งที่มีการเปลี่ยนแปลง dependencies
+- ถ้าไม่ได้ใช้ package ที่ error (เช่น yaml@2.8.3) ให้ลบออกจาก package.json แล้วรัน npm install ใหม่
+- ถ้าใช้ yarn ให้ลบ package-lock.json แล้วใช้ yarn.lock แทน
+
+---
+
+4. ถ้าเจอ error ซ้ำ
+- ตรวจสอบ log ที่ Cloudflare Pages ให้ละเอียด
+- ตรวจสอบว่าไฟล์ package.json และ package-lock.json อยู่ใน repository และ sync กันจริง
+- ถ้ายังแก้ไม่ได้ ส่ง log หรือไฟล์ทั้งสองมาให้ช่วยตรวจสอบได้
+
+---
+
+สรุปสั้น:
+ทุกครั้งที่เพิ่ม/ลบ package ให้รัน npm install และ push package-lock.json ขึ้น GitHub เสมอ
+Cloudflare Pages จะ build และ deploy อัตโนมัติจาก branch ที่ตั้งไว้
+
+หากมีปัญหาเพิ่มเติม ส่งรายละเอียด error หรือไฟล์ที่เกี่ยวข้องมาได้เลย!
