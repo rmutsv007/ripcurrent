@@ -11,7 +11,7 @@ import React, { useState } from 'react';
 import layers from './layers';
 
 // === นำเข้าข้อมูลชั้น Heatmap / ความหนาแน่น ===
-import heatmapLayers from './heatmapLayers';
+import orthoLayers from './orthoLayers';
 
 // === นำเข้า CSS สำหรับ Sidebar ===
 import './Sidebar.css';
@@ -61,7 +61,7 @@ const HeatIcon = () => (
  * @param {boolean} collapsed - สถานะย่อ/ขยาย
  * @param {Function} onCollapseChange - callback เมื่อเปลี่ยนสถานะย่อ/ขยาย
  */
-const Sidebar = ({ onLayerChange, onHeatmapChange, collapsed, onCollapseChange }) => {
+const Sidebar = ({ onLayerChange, onOrthoChange, collapsed, onCollapseChange }) => {
   // ref สำหรับพื้นที่เลื่อนได้ (scroll area)
   const sidebarContentRef = React.useRef();
 
@@ -145,8 +145,8 @@ const Sidebar = ({ onLayerChange, onHeatmapChange, collapsed, onCollapseChange }
 
   // แจ้ง parent เมื่อชั้น Heatmap ที่เลือกเปลี่ยน
   React.useEffect(() => {
-    if (onHeatmapChange) onHeatmapChange(selectedHeatmapIds);
-  }, [selectedHeatmapIds, onHeatmapChange]);
+    if (onOrthoChange) onOrthoChange(selectedHeatmapIds);
+  }, [selectedHeatmapIds, onOrthoChange]);
 
   /**
    * handleHeatmapToggle — เปิด/ปิดชั้น Heatmap
@@ -175,7 +175,7 @@ const Sidebar = ({ onLayerChange, onHeatmapChange, collapsed, onCollapseChange }
       {/* ส่วนหัว Sidebar — แสดงเฉพาะเมื่อขยาย */}
       {!collapsed && (
         <div className="sidebar-header">
-          <p className="sidebar-header-title">ชั้นข้อมูล</p>
+          <p className="sidebar-header-title">ชั้นข้อมูล Vector</p>
         </div>
       )}
 
@@ -219,10 +219,10 @@ const Sidebar = ({ onLayerChange, onHeatmapChange, collapsed, onCollapseChange }
         {/* ==================== ชั้น Heatmap / ความหนาแน่น ==================== */}
         {!collapsed && (
           <div className="sidebar-subheader">
-            <p className="sidebar-header-title">Heatmap / ความหนาแน่น</p>
+            <p className="sidebar-header-title">ชั้นข้อมูล Raster</p>
           </div>
         )}
-        {heatmapLayers.map(layer => {
+        {orthoLayers.map(layer => {
           const isActive = selectedHeatmapIds.includes(layer.id);
           return (
             <div

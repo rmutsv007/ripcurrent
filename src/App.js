@@ -29,7 +29,7 @@ import FeatureDetail from './FeatureDetail';     // หน้ารายละ�
 import Sidebar from './Sidebar';                 // แถบเมนูเลือกชั้นข้อมูล (ซ้าย)
 import Login from './Login';                     // หน้าเข้าสู่ระบบผู้ดูแล
 import layers from './layers';                   // รายการชั้นข้อมูลทั้งหมด
-import heatmapLayers from './heatmapLayers';     // รายการชั้น Heatmap / ความหนาแน่น
+import orthoLayers from './orthoLayers';     // รายการชั้น Ortho / ความหนาแน่น
 
 // === นำเข้า CSS เพิ่มเติม ===
 import './MapOverrides.css';  // ปรับแต่ง style ของ Leaflet (popup, tooltip, zoom)
@@ -107,12 +107,12 @@ function getFeatureViewTarget(feature) {
  * @param {React.MutableRefObject} props.mapRef - ref สำหรับเก็บ map instance
  */
 /**
- * HeatmapOpacityControl — แถบเลื่อนปรับความทึบ (opacity) ของชั้น Heatmap
- * วางลอยมุมล่างซ้ายของแผนที่ — แสดงเฉพาะเมื่อมีชั้น Heatmap เปิดอยู่
+ * OrthoOpacityControl — แถบเลื่อนปรับความทึบ (opacity) ของชั้น Ortho
+ * วางลอยมุมล่างซ้ายของแผนที่ — แสดงเฉพาะเมื่อมีชั้น Ortho เปิดอยู่
  * @param {number} props.value - ค่า opacity ปัจจุบัน (0–1)
  * @param {Function} props.onChange - callback เมื่อเลื่อนแถบ
  */
-function HeatmapOpacityControl({ value, onChange }) {
+function OrthoOpacityControl({ value, onChange }) {
   const ref = useRef(null);
 
   // กันไม่ให้การลาก/คลิก/scroll บนแถบไปโดนถึงแผนที่ (ไม่ให้แผนที่เลื่อน/ซูม)
@@ -143,7 +143,7 @@ function HeatmapOpacityControl({ value, onChange }) {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         marginBottom: 8, fontSize: 12, fontWeight: 600, color: 'var(--c-text)',
       }}>
-        <span>ความทึบ Heatmap</span>
+        <span>ความทึบ Raster</span>
         <span style={{ color: 'var(--c-accent-light)' }}>{percent}%</span>
       </div>
       <input
@@ -152,7 +152,7 @@ function HeatmapOpacityControl({ value, onChange }) {
         max={100}
         value={percent}
         onChange={e => onChange(Number(e.target.value) / 100)}
-        aria-label="ปรับความทึบ Heatmap"
+        aria-label="ปรับความทึบ Ortho"
         style={{ width: '100%', accentColor: 'var(--c-accent)', cursor: 'pointer' }}
       />
     </div>
@@ -178,8 +178,8 @@ function MapInstanceBridge({ mapRef }) {
 
 /**
  * LayerPaneSetup — สร้าง Leaflet panes สำหรับควบคุมลำดับการซ้อนของชั้นข้อมูล
- * heatmap จะอยู่ใต้ชั้นปศุสัตว์เสมอ ไม่ว่าผู้ใช้จะเปิด/ปิดลำดับไหนก่อน
- * waterway จะอยู่ต่ำกว่า heatmap 1 ระดับเสมอ
+ * Ortho จะอยู่ใต้ชั้นปศุสัตว์เสมอ ไม่ว่าผู้ใช้จะเปิด/ปิดลำดับไหนก่อน
+ * waterway จะอยู่ต่ำกว่า Ortho 1 ระดับเสมอ
  */
 function LayerPaneSetup() {
   const map = useMap();
@@ -188,8 +188,8 @@ function LayerPaneSetup() {
     if (!map.getPane('amphoePane')) {
       map.createPane('amphoePane');
     }
-    if (!map.getPane('heatmapPane')) {
-      map.createPane('heatmapPane');
+    if (!map.getPane('OrthoPane')) {
+      map.createPane('OrthoPane');
     }
     if (!map.getPane('waterwayPane')) {
       map.createPane('waterwayPane');
@@ -200,7 +200,7 @@ function LayerPaneSetup() {
 
     map.getPane('amphoePane').style.zIndex = 330;
     map.getPane('waterwayPane').style.zIndex = 339;
-    map.getPane('heatmapPane').style.zIndex = 340;
+    map.getPane('OrthoPane').style.zIndex = 340;
     map.getPane('livestockPane').style.zIndex = 350;
   }, [map]);
 
@@ -219,14 +219,14 @@ function App() {
   const [filteredPoints, setFilteredPoints] = useState([]);              // ข้อมูลจุดที่ผ่านการกรอง
   const searchValue = "";                                                 // ค่าค้นหา (ปัจจุบันตั้งค่าคงที่)
   const [selectedLayerIds, setSelectedLayerIds] = useState([]);          // ID ของ Layer ที่เลือกแสดง
-  const [selectedHeatmapIds, setSelectedHeatmapIds] = useState([]);      // ID ของชั้น Heatmap ที่เลือก
-  const [heatmapOpacity, setHeatmapOpacity] = useState(0.4);             // ความทึบ Heatmap (เริ่มต้น 40%)
+  const [selectedOrthoIds, setSelectedOrthoIds] = useState([]);      // ID ของชั้น Ortho ที่เลือก
+  const [OrthoOpacity, setOrthoOpacity] = useState(0.4);             // ความทึบ Ortho (เริ่มต้น 40%)
   const [selectedFeature, setSelectedFeature] = useState(null);          // Feature ที่ถูกเลือกดูรายละเอียด
   const [basemapId, setBasemapId] = useState(() => localStorage.getItem('basemap') || 'osm'); // ID แผนที่ฐานปัจจุบัน
   const [basemapOpen, setBasemapOpen] = useState(false);                 // สถานะเปิด/ปิด dropdown เลือกแผนที่ฐาน
   const basemapManualRef = useRef(false);                                // flag: ผู้ใช้เลือกแผนที่ฐานเองหรือไม่
-  const [mapCenter] = useState([7.4, 100.3]);                           // พิกัดกึ่งกลางแผนที่ (จ.สงขลา)
-  const [mapZoom] = useState(9);                                         // ระดับ zoom เริ่มต้นของแผนที่
+  const [mapCenter] = useState([7.206227, 100.602645]);                           // พิกัดกึ่งกลางแผนที่ (จ.สงขลา)
+  const [mapZoom] = useState(14);                                         // ระดับ zoom เริ่มต้นของแผนที่
   const [theme, setTheme] = useState('light');                           // ธีม: 'light' หรือ 'dark'
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('authToken') || null);  // JWT token
   const [authUser, setAuthUser] = useState(() => localStorage.getItem('authUser') || null);     // ชื่อผู้ใช้
@@ -389,7 +389,7 @@ function App() {
     // ดึงข้อมูลจาก WFS แต่ละ layer
     selectedLayers.forEach(layer => {
       // สร้าง URL สำหรับ WFS GetFeature request
-      const wfsUrl = `https://map.surveywms.com/geoserver/LiveStock/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=LiveStock:${encodeURIComponent(layer.name)}&outputFormat=application/json&maxFeatures=100`;
+      const wfsUrl = `https://map.surveywms.com/geoserver/ChalatatSongkhla/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ChalatatSongkhla:${encodeURIComponent(layer.name)}&outputFormat=application/json&maxFeatures=100`;
       
       fetch(wfsUrl)
         .then(res => res.json())                                    // แปลง response เป็น JSON
@@ -489,7 +489,7 @@ function App() {
           fontWeight: 600,
           letterSpacing: 0.3,
         }}>
-          ระบบฐานข้อมูลเกษตรกรผู้เลี้ยงปศุสัตว์จังหวัดสงขลา
+          จุดเสี่ยงการเกิดกระแสน้ำย้อนกลับชายหาดชลาทัศน์
         </h1>
         {/* ปุ่มสลับธีม (มืด/สว่าง) — อยู่ขวาสุด */}
         <div style={{ position: 'absolute', right: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -596,7 +596,7 @@ function App() {
               mapRef.current?.closePopup();      // ปิด popup เมื่อเปลี่ยน layer
               hideHighlight();                    // ซ่อน highlight เมื่อเปลี่ยน layer
             }}
-            onHeatmapChange={setSelectedHeatmapIds}
+            onOrthoChange={setSelectedOrthoIds}
             collapsed={sidebarCollapsed}
             onCollapseChange={setSidebarCollapsed}
           />
@@ -621,6 +621,7 @@ function App() {
             <MapContainer
               center={mapCenter}              // จุดเริ่มต้นแผนที่
               zoom={mapZoom}                  // ระดับ zoom เริ่มต้น
+              maxZoom={24}
               closePopupOnClick={false}       // ไม่ปิด popup เมื่อคลิกแผนที่
               style={{ height: '100%', width: '100%' }}
             >
@@ -629,12 +630,16 @@ function App() {
               <LayerPaneSetup />
               
               {/* ชั้นแผนที่ฐาน (basemap) */}
-              <TileLayer url={selectedBasemap.url} />
+              <TileLayer 
+                url={selectedBasemap.url} 
+                maxZoom={24}                    // <--- เพิ่ม: ยอมให้ซูมได้ถึง 24
+                maxNativeZoom={19}              // <--- เพิ่ม: แต่ใช้รูปจริงแค่ระดับ 19 แล้วขยายเอา
+              />
 
               {/* แสดงขอบเขตอำเภอบนหน้าหลักตลอดเวลา โดยไม่ต้องให้ผู้ใช้เปิดจาก Sidebar */}
               <WMSTileLayer
                 url="https://map.surveywms.com/geoserver/LiveStock/wms"
-                layers="LiveStock:Amphoe"
+                layers="ChalatatSongkhla:eiei"
                 format="image/png"
                 transparent={true}
                 version="1.1.1"
@@ -724,35 +729,37 @@ function App() {
                 .map(layer => (
                   <WMSTileLayer
                     key={layer.id}
-                    url="https://map.surveywms.com/geoserver/LiveStock/wms"  // URL ของ GeoServer WMS
-                    layers={`LiveStock:${layer.name}`}                        // ชื่อ layer ใน GeoServer
+                    url="https://map.surveywms.com/geoserver/ChalatatSongkhla/wms"  // URL ของ GeoServer WMS
+                    layers={`ChalatatSongkhla:${layer.name}`}                        // ชื่อ layer ใน GeoServer
                     format="image/png"                                        // รูปแบบภาพ
                     transparent={true}                                        // พื้นหลังโปร่งใส
                     version="1.1.1"                                           // เวอร์ชัน WMS
+                    maxZoom={24}
                     pane={layer.id === 'waterway' ? 'waterwayPane' : 'livestockPane'}
                   />
                 ))}
 
-              {/* ==================== Heatmap Layers (ราสเตอร์ความหนาแน่น) ==================== */}
-              {/* ชั้น Heatmap ที่เลือก — ปรับความทึบร่วมกันผ่านแถบเลื่อน */}
-              {heatmapLayers
-                .filter(l => selectedHeatmapIds.includes(l.id))
+              {/* ==================== Ortho Layers (ราสเตอร์ความหนาแน่น) ==================== */}
+              {/* ชั้น Ortho ที่เลือก — ปรับความทึบร่วมกันผ่านแถบเลื่อน */}
+              {orthoLayers
+                .filter(l => selectedOrthoIds.includes(l.id))
                 .map(layer => (
                   <WMSTileLayer
                     key={layer.id}
-                    url="https://map.surveywms.com/geoserver/LiveStock/wms"
-                    layers={`LiveStock:${layer.name}`}
+                    url="https://map.surveywms.com/geoserver/ChalatatSongkhla/wms"
+                    layers={`ChalatatSongkhla:${layer.name}`}
                     format="image/png"
                     transparent={true}
                     version="1.1.1"
-                    opacity={heatmapOpacity}                                   // ความทึบจากแถบเลื่อน
-                    pane="heatmapPane"
+                    maxZoom={24}
+                    opacity={OrthoOpacity}                                   // ความทึบจากแถบเลื่อน
+                    pane="OrthoPane"
                   />
                 ))}
 
-              {/* แถบเลื่อนปรับความทึบ — แสดงเฉพาะเมื่อมีชั้น Heatmap เปิดอยู่ */}
-              {selectedHeatmapIds.length > 0 && (
-                <HeatmapOpacityControl value={heatmapOpacity} onChange={setHeatmapOpacity} />
+              {/* แถบเลื่อนปรับความทึบ — แสดงเฉพาะเมื่อมีชั้น Ortho เปิดอยู่ */}
+              {selectedOrthoIds.length > 0 && (
+                <OrthoOpacityControl value={OrthoOpacity} onChange={setOrthoOpacity} />
               )}
 
               {/* ==================== Data Points (จุดข้อมูลบนแผนที่) ==================== */}

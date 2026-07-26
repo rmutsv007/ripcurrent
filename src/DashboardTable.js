@@ -128,7 +128,7 @@ const DashboardTable = ({ points, onSelectFeature }) => {
             <line x1="1" y1="7" x2="19" y2="7" stroke="#3b82f6" strokeWidth="1.2"/>
             <line x1="7" y1="7" x2="7" y2="19" stroke="#3b82f6" strokeWidth="1.2"/>
           </svg>
-          <span style={{ letterSpacing: 0.3 }}>ข้อมูลปศุสัตว์จังหวัดสงขลา</span>
+          <span style={{ letterSpacing: 0.3 }}>ข้อมูลชายหาดชลาทัศน์</span>
           {/* Badge แสดงจำนวนรายการ */}
           <span style={{
             background: 'var(--c-accent-bg)',
