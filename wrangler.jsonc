@@ -1,7 +1,7 @@
 {
   // คอนฟิกสำหรับ Cloudflare Workers Builds — deploy เว็บ (CRA) เป็น static assets
   // ใช้กับ deploy command: npx wrangler versions upload
-  "name": "livestock",
+  "name": "ripcurrent",
   "compatibility_date": "2026-06-13",
   "assets": {
     "directory": "./build"
