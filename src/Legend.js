@@ -17,7 +17,7 @@ const LEGEND_OPTIONS = 'dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:T
  * @returns {string} URL ของภาพไอคอน legend
  */
 const getLegendUrl = (layerName) =>
-  `https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=LiveStock:${encodeURIComponent(layerName)}&LEGEND_OPTIONS=${encodeURIComponent(LEGEND_OPTIONS)}&TRANSPARENT=true`;
+  `https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layerName)}&LEGEND_OPTIONS=${encodeURIComponent(LEGEND_OPTIONS)}&TRANSPARENT=true`;
 
 /**
  * Legend — คอมโพเนนต์แสดงรายการสัญลักษณ์ทั้งหมด

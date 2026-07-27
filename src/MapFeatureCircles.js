@@ -68,7 +68,7 @@ function buildPopupContent(feature, lat, lng, onViewDetail) {
 
   // === ชื่อฟาร์ม (หัวข้อ) ===
   const title = document.createElement('div');
-  title.textContent = feature?.properties?.Farm_name || '-';
+  title.textContent = feature?.properties?.location || '-';
   title.style.fontWeight = 'bold';
   title.style.fontSize = '16px';
   title.style.textAlign = 'center';
@@ -85,12 +85,12 @@ function buildPopupContent(feature, lat, lng, onViewDetail) {
   addressDiv.style.color = 'var(--c-text-secondary)';
   // ป้ายกำกับ "ที่อยู่ :"
   const addressLabel = document.createElement('span');
-  addressLabel.textContent = 'ที่อยู่ :';
+  addressLabel.textContent = 'บริเวณพื้นที่เก็บตัวอย่าง :';
   addressLabel.style.fontWeight = '600';
   addressLabel.style.color = 'var(--c-text)';
   addressDiv.appendChild(addressLabel);
   // ข้อความที่อยู่
-  addressDiv.appendChild(document.createTextNode(' ' + (feature?.properties?.Address || '-')));
+  addressDiv.appendChild(document.createTextNode(' ' + (feature?.properties?.location || '-')));
   wrapper.appendChild(addressDiv);
 
   // === ปุ่มดำเนินการ (ดูข้อมูล + นำทาง) ===
@@ -171,7 +171,7 @@ export function getFeatureKey(feature, fallbackKey) {
     ? JSON.stringify(coords)
     : '';
 
-  return `${feature?.properties?.Farm_name || 'feature'}:${keyFromCoords || fallbackKey}`;
+  return `${feature?.properties?.location || 'feature'}:${keyFromCoords || fallbackKey}`;
 }
 
 /**
@@ -254,7 +254,7 @@ export function MapFeatureCircle({ feature, featureKey, onViewDetail }) {
     >
       {/* Tooltip — แสดงชื่อฟาร์มเมื่อ hover */}
       <Tooltip direction="top" offset={[0, -10]} opacity={1} permanent={false} sticky>
-        {feature.properties?.Farm_name || '-'}
+        {feature.properties?.location || '-'}
       </Tooltip>
     </Circle>
     </>

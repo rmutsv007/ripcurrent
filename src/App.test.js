@@ -50,14 +50,14 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-test('renders the app header and loads default livestock layer data', async () => {
+test('renders the app header and loads default 	ChalatatSongkhla layer data', async () => {
   render(<App />);
 
   expect(screen.getByText('ระบบฐานข้อมูลเกษตรกรผู้เลี้ยงปศุสัตว์จังหวัดสงขลา')).toBeInTheDocument();
 
   await waitFor(() => {
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://map.surveywms.com/geoserver/LiveStock/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=LiveStock:%E0%B9%84%E0%B8%81%E0%B9%88&outputFormat=application/json&maxFeatures=100'
+      'https://map.surveywms.com/geoserver/	ChalatatSongkhla/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=	ChalatatSongkhla:%E0%B9%84%E0%B8%81%E0%B9%88&outputFormat=application/json&maxFeatures=100'
     );
   });
 });

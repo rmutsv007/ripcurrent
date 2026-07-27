@@ -8,8 +8,9 @@
 
 const layers = [
 
-  { id: 'ขอบเขตชายหาด', name: 'ขอบเขตชายหาด', label: 'ขอบเขตชายหาด', kind: 'polygon' }, // ขอบเขตชายหาด (polygon layer)
+  //{ id: 'ขอบเขตชายหาด', name: 'ขอบเขตชายหาด', label: 'ขอบเขตชายหาด', kind: 'line' }, // ขอบเขตชายหาด (polygon layer)
   { id: 'Contour', name: 'Contour', label: 'เส้นชั้นความสูง', kind: 'line' }, // Contour (line layer)
+  { id: 'WaterQuality', name: 'WaterQuality', label: 'คุณภาพน้ำ', kind: 'point' }, // ตารางบันทึกการเก็บตัวอย่างเพื่อการตรวจสอบคุณภาพน้ำ (point layer)
 ];
 
 export default layers; // ส่งออกรายการ layers

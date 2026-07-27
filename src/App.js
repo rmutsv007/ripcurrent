@@ -363,7 +363,7 @@ function App() {
       // กรองตามชื่อฟาร์ม (ไม่สนตัวพิมพ์เล็ก-ใหญ่)
       setFilteredPoints(
         points.filter(f =>
-          f.properties?.Farm_name?.toLowerCase().includes(searchValue.toLowerCase())
+          f.properties?.location?.toLowerCase().includes(searchValue.toLowerCase())
         )
       );
     }

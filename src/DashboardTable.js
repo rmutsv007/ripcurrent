@@ -22,7 +22,7 @@ const DashboardTable = ({ points, onSelectFeature }) => {
   const filteredPoints = !searchValue
     ? points // ถ้าไม่มีคำค้นหา ใช้ทั้งหมด
     : points.filter(f =>
-        f.properties?.Farm_name?.toLowerCase().includes(searchValue.toLowerCase())
+        f.properties?.location?.toLowerCase().includes(searchValue.toLowerCase())
       );
 
   // === คำนวณ pagination ===
@@ -150,7 +150,7 @@ const DashboardTable = ({ points, onSelectFeature }) => {
           {/* Input ค้นหาชื่อฟาร์ม */}
           <input
             type="text"
-            placeholder="ค้นหาชื่อฟาร์ม..."
+            placeholder="ค้นหาชื่อสถานที่..."
             value={searchValue}
             onChange={e => {
               setSearchValue(e.target.value);  // อัปเดตคำค้นหา
@@ -188,13 +188,17 @@ const DashboardTable = ({ points, onSelectFeature }) => {
             {/* === หัวตาราง (sticky) === */}
             <thead>
               <tr style={{ height: 44, fontSize: 12, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: 1 }}>
-                <th style={{ padding: '8px 12px', textAlign: 'left', width: 250, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>ชื่อ</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 80, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>ประเภท</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 100, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>ตำบล</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 100, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>อำเภอ</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 80, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>จังหวัด</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 90, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>จำนวน</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>สังกัด</th>
+                <th style={{ padding: '8px 12px', textAlign: 'left', width: 250, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>วันที่เก็บตัวอย่าง</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 80, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>เวลา</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 100, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>บริเวณพื้นที่เก็บตัวอย่าง</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 100, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>สีของน้ำ</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 80, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>กลิ่น</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 90, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>ตะกอน</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>ค่าความเป็นกรด-ด่าง (pH)</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>คราบน้ำมัน</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>E.Coli (โคโลนีสีฟ้า) CUF/g</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>Coliform (โคโลนีสีม่วง) CUF/g</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>สภาพอากาศ</th>
               </tr>
             </thead>
             {/* === เนื้อหาตาราง === */}
@@ -214,19 +218,19 @@ const DashboardTable = ({ points, onSelectFeature }) => {
                   onClick={() => onSelectFeature?.(f)}  // เรียก callback เมื่อคลิกแถว
                   style={{ background: 'transparent', height: 52, borderBottom: '1px solid var(--c-border-subtle)' }}
                 >
-                  {/* คอลัมน์: ชื่อฟาร์ม */}
-                  <td style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--c-text)', fontSize: 13, fontWeight: 500 }}>{f.properties?.Farm_name || '-'}</td>
+                  {/* คอลัมน์: วันที่เก็บตัวอย่าง */}
+                  <td style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--c-text)', fontSize: 13, fontWeight: 500 }}>{f.properties?.date || '-'}</td>
                   {/* คอลัมน์: ประเภทสัตว์ (แสดงไอคอนจาก GeoServer) */}
                   <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                     {(() => {
-                      const typeName = (f.properties?.Type || '').trim();         // ดึงชื่อประเภทสัตว์
+                      const typeName = (f.properties?.time || '').trim();         // ดึงชื่อประเภทสัตว์
                       const layer = layers.find(l => (l.name || '').trim() === typeName); // ค้นหา layer ที่ตรงกัน
                       if (layer) {
                         // ถ้าพบ layer — แสดงไอคอนจาก GetLegendGraphic
                         return (
                           <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <img
-                              src={`https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=LiveStock:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:30;symbolHeight:30')}&TRANSPARENT=true`}
+                              src={`https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:30;symbolHeight:30')}&TRANSPARENT=true`}
                               alt={typeName}
                               style={{ width: 24, height: 24, objectFit: 'contain', display: 'block', margin: '0 auto' }}
                             />
@@ -237,13 +241,13 @@ const DashboardTable = ({ points, onSelectFeature }) => {
                       return <span style={{ color: 'var(--c-text-secondary)', fontSize: 13 }}>{typeName || '-'}</span>;
                     })()}
                   </td>
-                  {/* คอลัมน์: ตำบล */}
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.Tambon || f.properties?.Tambon_T || '-'}</td>
-                  {/* คอลัมน์: อำเภอ */}
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.Amphoe || f.properties?.District_T || '-'}</td>
-                  {/* คอลัมน์: จังหวัด */}
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.Province || f.properties?.Province_T || '-'}</td>
-                  {/* คอลัมน์: จำนวนสัตว์ (แสดงเป็น badge) */}
+                  {/* คอลัมน์: บริเวณพื้นที่เก็บตัวอย่าง */}
+                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.location || f.properties?.Tambon_T || '-'}</td>
+                  {/* คอลัมน์: สีของน้ำ */}
+                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.สีของน้ำ || f.properties?.District_T || '-'}</td>
+                  {/* คอลัมน์: กลิ่น */}
+                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.กลิ่น || f.properties?.Province_T || '-'}</td>
+                  {/* คอลัมน์: ตะกอน (แสดงเป็น badge) */}
                   <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                     <span style={{
                       background: 'var(--c-accent-badge-bg)',
@@ -252,12 +256,20 @@ const DashboardTable = ({ points, onSelectFeature }) => {
                       borderRadius: 6,
                       fontSize: 13,
                       fontWeight: 600,
-                    }}>{f.properties?.Animal_qua || '-'}</span>
+                    }}>{f.properties?.ตะกอน || '-'}</span>
                   </td>
-                  {/* คอลัมน์: สังกัด */}
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.Affiliatio || '-'}</td>
+                  {/* คอลัมน์: ค่าความเป็นกรด-ด่าง (pH) */}
+                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['ค่าความเป็นกรด-ด่าง (pH)'] || '-'}</td>
+                  {/* คอลัมน์: คราบน้ำมัน */}
+                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['คราบน้ำมัน'] || '-'}</td>
+                  {/* คอลัมน์: E.Coli (โคโลนีสีฟ้า) CUF/g */}
+                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['E.Coli (โคโลนีสีฟ้า) CUF/g'] || '-'}</td>
+                  {/* คอลัมน์: Coliform (โคโลนีสีม่วง) CUF/g */}
+                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['Coliform (โคโลนีสีม่วง) CUF/g'] || '-'}</td>
+                  {/* คอลัมน์: สภาพอากาศ */}
+                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['หมายเหตุ'] || '-'}</td>
                 </tr>
-              ))}
+                ))}
             </tbody>
           </table>
         </div>
