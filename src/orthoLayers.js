@@ -12,7 +12,7 @@ const orthoLayers = [
   { id: 'Ortho_fixed', name: 'Ortho_fixed', label: 'ภาพโดรน' },
   //{ id: 'DEM', name: 'DEM', label: 'DEM.tif' },
   //{ id: 'DWCSV_CLIP', name: 'DWCSV_CLIP', label: 'ระดับความลึก' },
-  { id: 'DWCSV_CLIP_fixed', name: 'DWCSV_CLIP_fixed', label: 'ระดับความลึก' },
+  { id: 'DWCSV_CLIP_fixed', name: 'DWCSV_CLIP_fixed', label: 'ระดับความลึกชายหาด' },
 ];
 
 export default orthoLayers; // ส่งออกรายการ Ortho layers
