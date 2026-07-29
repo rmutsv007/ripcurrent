@@ -128,16 +128,34 @@ const Sidebar = ({ onLayerChange, onOrthoChange, collapsed, onCollapseChange }) 
   /**
    * handleLayerToggle — เปิด/ปิดชั้นข้อมูล
    * @param {Object} layer - layer ที่ถูกคลิก
-   * ถ้าเลือกอยู่แล้ว → ยกเลิก, ถ้ายังไม่เลือก → เพิ่ม
+   * @param {string} categoryName - ชื่อหมวดหมู่ของ layer นั้น (ถ้ามี)
    */
-  const handleLayerToggle = layer => {
-    let newIds;
-    if (selectedLayerIds.includes(layer.id)) {
-      newIds = selectedLayerIds.filter(id => id !== layer.id);  // ยกเลิกการเลือก
-    } else {
-      newIds = [...selectedLayerIds, layer.id];                  // เพิ่มเข้าไป
-    }
-    setSelectedLayerIds(newIds);
+  const handleLayerToggle = (layer, categoryName) => {
+    setSelectedLayerIds(prevIds => {
+      // 1. ถ้าชั้นข้อมูลที่คลิกอยู่ในหมวด "คุณภาพน้ำ" (ให้เลือกได้แค่อันเดียว)
+      if (categoryName === 'คุณภาพน้ำ') {
+        // หา ID ทั้งหมดที่อยู่ในหมวดคุณภาพน้ำ
+        const waterQualityCategory = layers.find(cat => cat.category === 'คุณภาพน้ำ');
+        const waterQualityIds = waterQualityCategory ? waterQualityCategory.items.map(item => item.id) : [];
+
+        // ถ้าคลิกอันที่เปิดอยู่แล้ว -> ให้ปิด
+        if (prevIds.includes(layer.id)) {
+          return prevIds.filter(id => id !== layer.id);
+        } 
+        // ถ้าคลิกอันใหม่ -> ลบอันเก่าในหมวดนี้ออกให้หมด แล้วใส่ตัวใหม่เข้าไปแทน
+        else {
+          const filteredIds = prevIds.filter(id => !waterQualityIds.includes(id));
+          return [...filteredIds, layer.id];
+        }
+      }
+
+      // 2. ถ้าเป็นหมวดอื่นๆ (เปิด/ปิดซ้อนกันได้แบบเดิม)
+      if (prevIds.includes(layer.id)) {
+        return prevIds.filter(id => id !== layer.id);
+      } else {
+        return [...prevIds, layer.id];
+      }
+    });
   };
 
   // === State: เก็บ ID ของชั้น Heatmap ที่ถูกเลือก (เริ่มต้นไม่เลือก) ===
@@ -185,36 +203,81 @@ const Sidebar = ({ onLayerChange, onOrthoChange, collapsed, onCollapseChange }) 
         ref={sidebarContentRef}
         onWheel={handleSidebarWheel}
       >
-        {/* วนลูปแสดงแต่ละ layer */}
-        {flatLayers.map(layer => {
-          const isActive = selectedLayerIds.includes(layer.id); // ตรวจสอบว่าถูกเลือกหรือไม่
-          const displayName = layer.label || layer.name;
-          return (
-            <div
-              key={layer.id}
-              className={`layer-item${isActive ? ' active' : ''}`}  // เพิ่ม class 'active' ถ้าเลือก
-              onClick={() => handleLayerToggle(layer)}               // คลิกเพื่อเปิด/ปิด
-              title={displayName}                                    // tooltip แสดงชื่อ layer
-            >
-              {/* ไอคอน layer — ดึงจาก GeoServer GetLegendGraphic */}
-              <div className="layer-icon-wrapper">
-                <img
-                  src={`https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:40;symbolHeight:40')}&TRANSPARENT=true`}
-                  alt={displayName}
-                />
-              </div>
-              {/* ชื่อ layer และ checkbox — แสดงเฉพาะเมื่อ sidebar ขยาย */}
+        {/* วนลูปแสดงแต่ละ layer แบบรองรับหัวข้อใหญ่ */}
+        {Array.isArray(layers) && layers[0]?.items ? (
+          // แบบมีหมวดหมู่
+          layers.map((cat, index) => (
+            <React.Fragment key={index}>
+              {/* ชื่อหัวข้อใหญ่ */}
               {!collapsed && (
-                <>
-                  <span className="layer-name">{displayName}</span>
-                  <div className="layer-check">
-                    <CheckIcon />  {/* ไอคอนเครื่องหมายถูก (แสดงเมื่อ active ผ่าน CSS) */}
-                  </div>
-                </>
+                <div className="sidebar-subheader" style={{ marginTop: '12px', paddingBottom: '4px' }}>
+                  <p className="sidebar-header-title" style={{ fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+                    {cat.category}
+                  </p>
+                </div>
               )}
-            </div>
-          );
-        })}
+              {/* ข้อมูลย่อยในหมวดหมู่ */}
+              {cat.items.map(layer => {
+                const isActive = selectedLayerIds.includes(layer.id);
+                const displayName = layer.label || layer.name;
+                return (
+                  <div
+                    key={layer.id}
+                    className={`layer-item${isActive ? ' active' : ''}`}
+                    onClick={() => handleLayerToggle(layer, cat.category)}
+                    title={displayName}
+                    // เพิ่ม margin ให้เยื้องเข้าไปด้านในเพื่อให้ดูเป็นหัวข้อย่อย
+                    style={{ marginLeft: collapsed ? 0 : '16px', paddingLeft: '8px' }} 
+                  >
+                    <div className="layer-icon-wrapper">
+                      <img
+                        src={`https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:40;symbolHeight:40')}&TRANSPARENT=true`}
+                        alt={displayName}
+                      />
+                    </div>
+                    {!collapsed && (
+                      <>
+                        <span className="layer-name">{displayName}</span>
+                        <div className="layer-check">
+                          <CheckIcon />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))
+        ) : (
+          // แบบไม่มีหมวดหมู่ (โครงสร้างเดิม)
+          flatLayers.map(layer => {
+            const isActive = selectedLayerIds.includes(layer.id);
+            const displayName = layer.label || layer.name;
+            return (
+              <div
+                key={layer.id}
+                className={`layer-item${isActive ? ' active' : ''}`}
+                onClick={() => handleLayerToggle(layer)}
+                title={displayName}
+              >
+                <div className="layer-icon-wrapper">
+                  <img
+                    src={`https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:40;symbolHeight:40')}&TRANSPARENT=true`}
+                    alt={displayName}
+                  />
+                </div>
+                {!collapsed && (
+                  <>
+                    <span className="layer-name">{displayName}</span>
+                    <div className="layer-check">
+                      <CheckIcon />
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })
+        )}
 
         {/* ==================== ชั้น Heatmap / ความหนาแน่น ==================== */}
         {!collapsed && (

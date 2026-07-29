@@ -1,0 +1,354 @@
+/**
+ * WaterQualityDashboard.js
+ * คอมโพเนนต์แสดงผลข้อมูลคุณภาพน้ำ (เฉพาะกราฟ) 
+ * ดึงข้อมูลทุกชั้นข้อมูลในหมวด "คุณภาพน้ำ" อัตโนมัติ โดยไม่ต้องคลิกเลือก Layer
+ */
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, ReferenceLine
+} from 'recharts';
+import layers from './layers'; // นำเข้าโครงสร้างชั้นข้อมูลทั้งหมดในระบบ
+
+// --- เกณฑ์เฝ้าระวัง ---
+const ECOLI_THRESHOLD = 250;
+const COLI_THRESHOLD = 1000;
+
+// --- สีพื้นฐานสำหรับจุดตรวจ (วนลูปใช้ถ้าจุดเกิน) ---
+const CHART_COLORS = ['#16a34a', '#84cc16', '#eab308', '#dc2626', '#f97316', '#3b82f6', '#8b5cf6', '#ec4899'];
+
+// --- Custom tooltip แบบการ์ดโค้งมน ---
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div style={{
+      background: 'rgba(17,24,39,0.95)', color: '#fff',
+      borderRadius: 10, padding: '10px 14px', fontSize: 12,
+      boxShadow: '0 8px 24px rgba(0,0,0,0.2)', minWidth: 160,
+    }}>
+      <div style={{ fontWeight: 700, marginBottom: 6, color: '#e5e7eb' }}>{label}</div>
+      {payload
+        .slice()
+        .sort((a, b) => b.value - a.value)
+        .map(p => {
+          // ดึงค่าดั้งเดิมที่เก็บซ่อนไว้มาแสดงผล เพื่อให้แสดง 0 ได้ แม้กราฟจะพล็อตที่ 1
+          const rawKey = p.dataKey + '_raw';
+          const realValue = p.payload[rawKey] !== undefined ? p.payload[rawKey] : p.value;
+
+          return (
+            <div key={p.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '2px 0' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#d1d5db' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color }} />
+                {p.name}
+              </span>
+              <span style={{ fontWeight: 700 }}>{realValue.toLocaleString()}</span>
+            </div>
+          );
+        })}
+    </div>
+  );
+}
+
+const WaterQualityDashboard = () => {
+  // สร้าง State เก็บข้อมูลที่ดึงมาเอง
+  const [points, setPoints] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // ตั้งค่ามาตราส่วนแกน Y (Log Scale) เริ่มต้นที่ 1 (เพราะ Log 0 หาค่าไม่ได้)
+  const logTicks = [1, 10, 100, 1000, 10000, 100000];
+
+  // =========================================================================
+  // ฟังก์ชันดึงข้อมูลจาก GeoServer อัตโนมัติเมื่อเปิดหน้ากราฟ
+  // =========================================================================
+  useEffect(() => {
+    // 1. ดึงรายชื่อเลเยอร์ทั้งหมด และพ่วงชื่อหมวดหมู่มาด้วย
+    const flatLayers = layers.flatMap(cat =>
+      cat.items ? cat.items.map(item => ({ ...item, groupName: cat.label || cat.category || '' })) : [cat]
+    );
+
+    // 2. กรองหาเฉพาะชั้นข้อมูลที่มีคำว่า "คุณภาพน้ำ" หรือ "water" ในชื่อ/หมวดหมู่
+    const wqLayers = flatLayers.filter(l =>
+      (l.groupName && l.groupName.includes('คุณภาพน้ำ')) ||
+      (l.category && l.category.includes('คุณภาพน้ำ')) ||
+      (l.label && l.label.includes('คุณภาพน้ำ')) ||
+      (l.name && l.name.toLowerCase().includes('water'))
+    );
+
+    // ถ้าไม่มีชั้นข้อมูลเลย ให้หยุดทำงาน
+    if (wqLayers.length === 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    let allFeatures = [];
+    let fetchCount = 0;
+
+    // 3. วนลูปยิง API ดึงข้อมูลทุกชั้นข้อมูลในหมวดคุณภาพน้ำ
+    wqLayers.forEach(layer => {
+      const wfsUrl = `https://map.surveywms.com/geoserver/ChalatatSongkhla/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ChalatatSongkhla:${encodeURIComponent(layer.name)}&outputFormat=application/json&maxFeatures=100`;
+
+      fetch(wfsUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data.features) allFeatures = [...allFeatures, ...data.features];
+        })
+        .catch(err => console.error("Fetch Water Quality error:", err))
+        .finally(() => {
+          fetchCount++;
+          // เมื่อดึงข้อมูลครบทุกชั้นแล้ว ให้อัปเดตกราฟ
+          if (fetchCount === wqLayers.length) {
+            setPoints(allFeatures);
+            setIsLoading(false);
+          }
+        });
+    });
+  }, []);
+
+  // =========================================================================
+  // ประมวลผลข้อมูล GeoJSON Features ให้กลายเป็นรูปแบบของกราฟ Recharts
+  // =========================================================================
+  const { chartData, locationsConfig } = useMemo(() => {
+    if (!points || points.length === 0) return { chartData: [], locationsConfig: [] };
+
+    const locSet = new Set();
+    const grouped = {};
+
+    points.forEach(p => {
+      const props = p.properties;
+      if (!props) return;
+
+      // 1. ตรวจสอบชื่อ Field ในหลายๆ รูปแบบเผื่อตัวพิมพ์เล็ก/ใหญ่
+      const ecoliRaw = props['E.Coli'] ?? props['E.coli'] ?? props['ecoli'] ?? props['e_coli'] ?? props['E_Coli'] ?? props['E_coli'];
+      const coliRaw = props['Coliform'] ?? props['coliform'] ?? props['ColiForm'];
+
+      // ถ้าไม่มีข้อมูลทั้งหมด ให้ข้าม
+      if (ecoliRaw === undefined && coliRaw === undefined && props.date === undefined) return;
+
+      // 2. จัดการรูปแบบวันที่
+      const rawDate = props.date ? String(props.date) : '0000-00-00';
+      let displayDate = 'ไม่ระบุวันที่';
+      
+      if (props.date) {
+        const dateMatch = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (dateMatch) {
+          const year = parseInt(dateMatch[1], 10);
+          const month = parseInt(dateMatch[2], 10);
+          const day = parseInt(dateMatch[3], 10);
+          const thaiMonths = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+          const shortYear = year % 100;
+          displayDate = `${day} ${thaiMonths[month]} ${shortYear}`;
+        } else {
+          displayDate = rawDate;
+        }
+      }
+
+      const loc = props.location || 'ไม่ระบุสถานที่';
+      locSet.add(loc);
+
+      // 3. จัดกลุ่มข้อมูลในวันเดียวกัน
+      if (!grouped[rawDate]) {
+        grouped[rawDate] = { 
+          rawDate: rawDate, 
+          date: displayDate
+        };
+      }
+
+      // ดึงข้อมูล E.coli และแปลงค่า 0 ให้เป็น 1 สำหรับพล็อตบนกราฟ Log Scale
+      if (ecoliRaw !== undefined && ecoliRaw !== null) {
+        const ecoliNum = parseFloat(String(ecoliRaw).replace(/[^0-9.]/g, ''));
+        if (!isNaN(ecoliNum)) {
+          grouped[rawDate][`${loc}_ecoli_raw`] = ecoliNum; // เก็บค่าจริงไว้โชว์ใน Tooltip
+          grouped[rawDate][`${loc}_ecoli`] = ecoliNum <= 0 ? 1 : ecoliNum; // ถ้าเป็น 0 หรือติดลบ ให้กราฟวาดที่ 1
+        }
+      }
+      
+      // ดึงข้อมูล Coliform และแปลงค่า 0 ให้เป็น 1 สำหรับพล็อตบนกราฟ Log Scale
+      if (coliRaw !== undefined && coliRaw !== null) {
+        const coliNum = parseFloat(String(coliRaw).replace(/[^0-9.]/g, ''));
+        if (!isNaN(coliNum)) {
+          grouped[rawDate][`${loc}_coli_raw`] = coliNum; // เก็บค่าจริงไว้โชว์ใน Tooltip
+          grouped[rawDate][`${loc}_coli`] = coliNum <= 0 ? 1 : coliNum; // ถ้าเป็น 0 หรือติดลบ ให้กราฟวาดที่ 1
+        }
+      }
+    });
+
+    const locArray = Array.from(locSet);
+    const config = locArray.map((loc, idx) => ({
+      key: loc,
+      label: loc,
+      color: CHART_COLORS[idx % CHART_COLORS.length]
+    }));
+
+    // 4. บังคับเรียงลำดับข้อมูลจาก อดีต -> ปัจจุบัน (เรียงตาม rawDate)
+    const dataArray = Object.values(grouped).sort((a, b) => {
+      if (a.rawDate < b.rawDate) return -1;
+      if (a.rawDate > b.rawDate) return 1;
+      return 0;
+    });
+
+    return { chartData: dataArray, locationsConfig: config };
+  }, [points]);
+
+
+  // =========================================================================
+  // การแสดงผล UI (ระหว่างโหลด / ไม่มีข้อมูล / แสดงกราฟ)
+  // =========================================================================
+  
+  if (isLoading) {
+    return (
+      <div style={{
+        padding: '24px', background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
+        borderRadius: 16, border: '1px solid #e5e7eb', height: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Sarabun, sans-serif'
+      }}>
+        <div style={{ textAlign: 'center', color: '#64748b' }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
+          <h3 style={{ margin: 0, color: '#0f172a', fontWeight: 600 }}>กำลังดึงข้อมูลคุณภาพน้ำ...</h3>
+        </div>
+      </div>
+    );
+  }
+
+  if (chartData.length === 0) {
+    return (
+      <div style={{
+        padding: '24px', background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
+        borderRadius: 16, border: '1px solid #e5e7eb', height: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Sarabun, sans-serif'
+      }}>
+        <div style={{ textAlign: 'center', color: '#64748b' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
+          <h3 style={{ margin: 0, color: '#0f172a', fontWeight: 600 }}>ไม่มีข้อมูล</h3>
+          <p style={{ margin: '8px 0 0', fontSize: 13 }}>ไม่พบชั้นข้อมูลคุณภาพน้ำในระบบ</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      padding: '24px',
+      background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
+      borderRadius: 16,
+      border: '1px solid #e5e7eb',
+      boxShadow: '0 4px 20px rgba(15, 23, 42, 0.06)',
+      fontFamily: 'Sarabun, sans-serif',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      overflowY: 'auto'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <div style={{
+          width: 38, height: 38, borderRadius: 10,
+          background: 'linear-gradient(135deg, #3b82f6, #1e3a8a)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 18, flexShrink: 0,
+        }}>📊</div>
+        <div>
+          <h3 style={{
+            margin: 0, color: '#0f172a', fontSize: 17, fontWeight: 700,
+            fontFamily: 'Sarabun-Medium, sans-serif',
+          }}>
+            แนวโน้มผลการตรวจเชื้อ E.coli และ Coliform
+          </h3>
+          <p style={{ margin: '2px 0 0', color: '#64748b', fontSize: 12.5 }}>
+            หน่วย: CFU/100 ml · ข้อมูลจาก {locationsConfig.length} จุดตรวจสอบ
+          </p>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
+        {/* กราฟที่ 1: E.coli */}
+        <div style={{
+          flex: '1 1 45%', minWidth: 400, background: '#ffffff',
+          border: '1px solid #e5e7eb', borderRadius: 14, padding: '18px 18px 8px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: '#3c83f6' }} />
+            <h4 style={{ margin: 0, color: '#0f172a', fontSize: 14.5, fontWeight: 700 }}>E.coli (CFU/100 ml)</h4>
+          </div>
+          <ResponsiveContainer width="100%" height={340}>
+            <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11.5, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+              <YAxis
+                scale="log" domain={[1, 100000]} ticks={logTicks}
+                tick={{ fontSize: 11.5, fill: '#64748b' }}
+                tickFormatter={(tick) => tick === 1 ? '0' : tick.toLocaleString()} // สั่งว่าถ้าค่าคือ 1 ให้แสดงเป็น 0
+                axisLine={false} tickLine={false}
+              />
+              <Tooltip content={<ChartTooltip />} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 11.5, paddingTop: 8 }} />
+
+              <ReferenceLine
+                y={ECOLI_THRESHOLD} stroke="#ef4444" strokeDasharray="4 4" strokeWidth={1.5}
+                label={{ position: 'insideTopRight', value: `เกณฑ์เฝ้าระวัง: ${ECOLI_THRESHOLD.toLocaleString()} (CFU/100 ml)`, fill: '#ef4444', fontSize: 11 }}
+              />
+
+              {locationsConfig.map(loc => (
+                <Line
+                  key={loc.key}
+                  type="linear"     // <--- เปลี่ยนเป็นแบบนี้แทน
+                  dataKey={`${loc.key}_ecoli`}
+                  name={loc.label}
+                  stroke={loc.color}
+                  strokeWidth={2.25}
+                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 0 }}
+                  activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
+                  connectNulls={true} 
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* กราฟที่ 2: Coliform */}
+        <div style={{
+          flex: '1 1 45%', minWidth: 400, background: '#ffffff',
+          border: '1px solid #e5e7eb', borderRadius: 14, padding: '18px 18px 8px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: '#7e22ce' }} />
+            <h4 style={{ margin: 0, color: '#0f172a', fontSize: 14.5, fontWeight: 700 }}>Coliform (CFU/100 ml)</h4>
+          </div>
+          <ResponsiveContainer width="100%" height={340}>
+            <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11.5, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+              <YAxis
+                scale="log" domain={[1, 100000]} ticks={logTicks}
+                tick={{ fontSize: 11.5, fill: '#64748b' }}
+                tickFormatter={(tick) => tick === 1 ? '0' : tick.toLocaleString()} // สั่งว่าถ้าค่าคือ 1 ให้แสดงเป็น 0
+                axisLine={false} tickLine={false}
+              />
+              <Tooltip content={<ChartTooltip />} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 11.5, paddingTop: 8 }} />
+
+              <ReferenceLine
+                y={COLI_THRESHOLD} stroke="#ef4444" strokeDasharray="4 4" strokeWidth={1.5}
+                label={{ position: 'insideTopRight', value: `เกณฑ์เฝ้าระวัง: ${COLI_THRESHOLD.toLocaleString()} (CFU/100 ml)`, fill: '#ef4444', fontSize: 11 }}
+              />
+
+              {locationsConfig.map(loc => (
+                <Line
+                  key={loc.key}
+                  type="linear"     // <--- เปลี่ยนเป็นแบบนี้แทน
+                  dataKey={`${loc.key}_coli`}
+                  name={loc.label}
+                  stroke={loc.color}
+                  strokeWidth={2.25}
+                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 0 }}
+                  activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
+                  connectNulls={true} 
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default WaterQualityDashboard;
