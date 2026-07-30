@@ -124,7 +124,7 @@ const FarmImage = ({ farmName, authToken }) => {
             <circle cx="4.5" cy="5.5" r="1.2" stroke="currentColor" strokeWidth="1" fill="none"/>
             <path d="M1 10l3-3 2 2 3-4 4 5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
           </svg>
-          รูปภาพฟาร์ม
+          รูปภาพจุดตัวอย่าง
         </span>
         {images.length > 0 && (
           <span style={{ fontSize: 11, color: 'var(--c-text-secondary)' }}>

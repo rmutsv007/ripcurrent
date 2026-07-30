@@ -236,7 +236,7 @@ app.delete('/api/images/:farmName', authMiddleware, (req, res) => {
 
   const farmDir = path.join(UPLOADS_DIR, farmName);
   if (!fs.existsSync(farmDir)) {
-    return res.status(404).json({ error: 'ไม่พบรูปภาพของฟาร์มนี้' });
+    return res.status(404).json({ error: 'ไม่พบรูปภาพ' });
   }
 
   fs.rmSync(farmDir, { recursive: true });
