@@ -350,7 +350,7 @@ function App() {
           fontSize: '17px', margin: 0, color: 'var(--c-text)', fontFamily: 'Sarabun-Medium',
           textAlign: 'center', display: 'flex', alignItems: 'center', gap: 12, fontWeight: 600, letterSpacing: 0.3,
         }}>
-          จุดเสี่ยงการเกิดกระแสน้ำย้อนกลับชายหาดชลาทัศน์
+          HydroGIS ชลาทัศน์ : ศูนย์แผนที่สำรวจและคุณภาพน้ำ
         </h1>
         <div style={{ position: 'absolute', right: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           {authToken ? (
