@@ -23,7 +23,7 @@ const Topbar = ({ searchValue, onSearchChange, onSearchSubmit }) => {
         {/* โลโก้แอปพลิเคชัน */}
         <img src="/logo192.png" alt="logo" style={{ width: 40, height: 40, borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: '2px solid rgba(255,255,255,0.2)' }} />
         {/* ชื่อระบบ */}
-        <span className="topbar-title">ระบบแผนที่ฟาร์มปศุสัตว์</span>
+        <span className="topbar-title">HydroGIS ชลาทัศน์ : ศูนย์แผนที่สำรวจและคุณภาพน้ำ</span>
       </div>
 
       {/* ส่วนขวา: แบบฟอร์มค้นหา */}

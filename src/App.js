@@ -517,7 +517,8 @@ function App() {
                   />
                 ))}
 
-              {orthoLayers
+              {/* แตกหมวดหมู่ OrthoLayers ออกมาก่อนนำไปสร้างบนแผนที่ */}
+              {orthoLayers.flatMap(cat => cat.items || [cat])
                 .filter(l => selectedOrthoIds.includes(l.id))
                 .map(layer => (
                   <WMSTileLayer

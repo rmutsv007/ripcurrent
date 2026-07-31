@@ -1,22 +1,24 @@
 /**
- * OrthoLayers.js — รายการชั้นข้อมูล Ortho / ความหนาแน่น (raster) จาก GeoServer
- * แต่ละ layer มี:
- *   id: ค่าเฉพาะสำหรับอ้างอิงใน React (ใช้เป็น key)
- *   name: ชื่อ layer ใน GeoServer (จะถูกเรียกเป็น LiveStock:<name> ผ่าน WMS)
- *   label: ชื่อที่แสดงใน Sidebar
- * ต่างจาก layers.js ตรงที่ Ortho เป็นภาพ raster ล้วน (ไม่มีจุด/ตารางข้อมูล)
- * และปรับความทึบ (opacity) ได้ผ่านแถบเลื่อนบนแผนที่
+ * OrthoLayers.js — รายการชั้นข้อมูล Ortho / ความหนาแน่น (raster) 
+ * ปรับปรุงใหม่ให้รองรับการจัดหมวดหมู่ (Category)
  */
 
 const orthoLayers = [
-  { id: 'Ortho_fixed', name: 'Ortho_fixed', label: 'ภาพโดรนหาดชลาทัศน์และหาดสมิหลา' },
-  { id: 'Ortho_samrong', name: 'Ortho_samrong', label: 'ภาพโดรนคลองสำโรง' },
-  { id: 'OOOO', name: 'OOOO', label: 'ภาพโดรนเกาะหนู' },
-  //{ id: 'DEM', name: 'DEM', label: 'DEM.tif' },
-  //{ id: 'DWCSV_CLIP', name: 'DWCSV_CLIP', label: 'ระดับความลึก' },
-  { id: 'DWCSV_CLIP_fixed', name: 'DWCSV_CLIP_fixed', label: 'ระดับความลึกชายหาด' },
-  { id: 'DEM_kohnu', name: 'DEM_kohnu', label: 'ระดับความลึกเกาะหนู' },
-
+  {
+    category: 'ภาพถ่ายจากโดรน',
+    items: [
+      { id: 'Ortho_fixed', name: 'Ortho_fixed', label: 'หาดชลาทัศน์และหาดสมิหลา' },
+      { id: 'Ortho_samrong', name: 'Ortho_samrong', label: 'คลองสำโรง' },
+      { id: 'OOOO', name: 'OOOO', label: 'เกาะหนู' },
+    ]
+  },
+  {
+    category: 'ข้อมูลระดับความลึก',
+    items: [
+      { id: 'DWCSV_CLIP_fixed', name: 'DWCSV_CLIP_fixed', label: 'หาดชลาทัศน์และหาดสมิหลา' },
+      { id: 'DEM_kohnu', name: 'DEM_kohnu', label: 'เกาะหนู' },
+    ]
+  }
 ];
 
-export default orthoLayers; // ส่งออกรายการ Ortho layers
+export default orthoLayers;

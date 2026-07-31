@@ -53,7 +53,7 @@ afterEach(() => {
 test('renders the app header and loads default 	ChalatatSongkhla layer data', async () => {
   render(<App />);
 
-  expect(screen.getByText('ระบบฐานข้อมูลเกษตรกรผู้เลี้ยงปศุสัตว์จังหวัดสงขลา')).toBeInTheDocument();
+  expect(screen.getByText('HydroGIS ชลาทัศน์ : ศูนย์แผนที่สำรวจและคุณภาพน้ำ')).toBeInTheDocument();
 
   await waitFor(() => {
     expect(global.fetch).toHaveBeenCalledWith(

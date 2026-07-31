@@ -190,13 +190,6 @@ const Sidebar = ({ onLayerChange, onOrthoChange, collapsed, onCollapseChange }) 
         {collapsed ? <ExpandIcon /> : <><CollapseIcon /> {!collapsed && <span>ย่อเมนู</span>}</>}
       </button>
 
-      {/* ส่วนหัว Sidebar — แสดงเฉพาะเมื่อขยาย */}
-      {!collapsed && (
-        <div className="sidebar-header">
-          <p className="sidebar-header-title">ชั้นข้อมูล Vector</p>
-        </div>
-      )}
-
       {/* รายการชั้นข้อมูล (เลื่อนได้) */}
       <div
         className="sidebar-content"
@@ -279,37 +272,70 @@ const Sidebar = ({ onLayerChange, onOrthoChange, collapsed, onCollapseChange }) 
           })
         )}
 
-        {/* ==================== ชั้น Heatmap / ความหนาแน่น ==================== */}
-        {!collapsed && (
-          <div className="sidebar-subheader">
-            <p className="sidebar-header-title">ชั้นข้อมูล Raster</p>
-          </div>
-        )}
-        {orthoLayers.map(layer => {
-          const isActive = selectedHeatmapIds.includes(layer.id);
-          return (
-            <div
-              key={layer.id}
-              className={`layer-item${isActive ? ' active' : ''}`}
-              onClick={() => handleHeatmapToggle(layer)}
-              title={layer.label}
-            >
-              {/* ไอคอน heatmap */}
-              <div className="layer-icon-wrapper">
-                <HeatIcon />
-              </div>
-              {/* ชื่อ + checkbox — แสดงเฉพาะเมื่อ sidebar ขยาย */}
+        {/* ==================== ชั้น Heatmap / ความหนาแน่น ==================== */}        
+        {/* วนลูปแสดงผล OrthoLayers แบบรองรับหมวดหมู่ */}
+        {Array.isArray(orthoLayers) && orthoLayers[0]?.items ? (
+          orthoLayers.map((cat, index) => (
+            <React.Fragment key={`ortho-cat-${index}`}>
               {!collapsed && (
-                <>
-                  <span className="layer-name">{layer.label}</span>
-                  <div className="layer-check">
-                    <CheckIcon />
-                  </div>
-                </>
+                <div className="sidebar-subheader" style={{ marginTop: '12px', paddingBottom: '4px' }}>
+                  <p className="sidebar-header-title" style={{ fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+                    {cat.category}
+                  </p>
+                </div>
               )}
-            </div>
-          );
-        })}
+              {cat.items.map(layer => {
+                const isActive = selectedHeatmapIds.includes(layer.id);
+                return (
+                  <div
+                    key={layer.id}
+                    className={`layer-item${isActive ? ' active' : ''}`}
+                    onClick={() => handleHeatmapToggle(layer)}
+                    title={layer.label}
+                    style={{ marginLeft: collapsed ? 0 : '16px', paddingLeft: '8px' }}
+                  >
+                    <div className="layer-icon-wrapper">
+                      <HeatIcon />
+                    </div>
+                    {!collapsed && (
+                      <>
+                        <span className="layer-name">{layer.label}</span>
+                        <div className="layer-check">
+                          <CheckIcon />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))
+        ) : (
+          /* กรณีกลับไปใช้แบบไม่มีหมวดหมู่ */
+          orthoLayers.map(layer => {
+            const isActive = selectedHeatmapIds.includes(layer.id);
+            return (
+              <div
+                key={layer.id}
+                className={`layer-item${isActive ? ' active' : ''}`}
+                onClick={() => handleHeatmapToggle(layer)}
+                title={layer.label}
+              >
+                <div className="layer-icon-wrapper">
+                  <HeatIcon />
+                </div>
+                {!collapsed && (
+                  <>
+                    <span className="layer-name">{layer.label}</span>
+                    <div className="layer-check">
+                      <CheckIcon />
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* ส่วนท้าย Sidebar — แสดงเฉพาะเมื่อขยาย */}
