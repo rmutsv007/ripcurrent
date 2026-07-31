@@ -15,7 +15,8 @@ const orthoLayers = [
   //{ id: 'DEM', name: 'DEM', label: 'DEM.tif' },
   //{ id: 'DWCSV_CLIP', name: 'DWCSV_CLIP', label: 'ระดับความลึก' },
   { id: 'DWCSV_CLIP_fixed', name: 'DWCSV_CLIP_fixed', label: 'ระดับความลึกชายหาด' },
-  
+  { id: 'DEM_kohnu', name: 'DEM_kohnu', label: 'ระดับความลึกเกาะหนู' },
+
 ];
 
 export default orthoLayers; // ส่งออกรายการ Ortho layers
