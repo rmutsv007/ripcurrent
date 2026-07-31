@@ -11,6 +11,7 @@
 const orthoLayers = [
   { id: 'Ortho_fixed', name: 'Ortho_fixed', label: 'ภาพโดรนหาดชลาทัศน์และหาดสมิหลา' },
   { id: 'Ortho_samrong', name: 'Ortho_samrong', label: 'ภาพโดรนคลองสำโรง' },
+  { id: 'OOOO', name: 'OOOO', label: 'ภาพโดรนเกาะหนู' },
   //{ id: 'DEM', name: 'DEM', label: 'DEM.tif' },
   //{ id: 'DWCSV_CLIP', name: 'DWCSV_CLIP', label: 'ระดับความลึก' },
   { id: 'DWCSV_CLIP_fixed', name: 'DWCSV_CLIP_fixed', label: 'ระดับความลึกชายหาด' },
