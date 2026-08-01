@@ -56,12 +56,24 @@ const HeatIcon = () => (
 );
 
 /**
+ * RainIcon — ไอคอนสำหรับชั้นเรดาร์ฝน (Longdo Weather)
+ */
+const RainIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <path d="M6 8.5a3.5 3.5 0 0 1 6.8-1.2A3 3 0 0 1 14.5 13H6a3 3 0 0 1-1.2-5.75" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" fill="none"/>
+    <line x1="7" y1="15" x2="6" y2="17.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    <line x1="10" y1="15" x2="9" y2="17.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    <line x1="13" y1="15" x2="12" y2="17.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+);
+
+/**
  * Sidebar — คอมโพเนนต์แถบเมนูเลือกชั้นข้อมูล
  * @param {Function} onLayerChange - callback เมื่อเปลี่ยนชั้นข้อมูลที่เลือก (ส่ง array ของ IDs)
  * @param {boolean} collapsed - สถานะย่อ/ขยาย
  * @param {Function} onCollapseChange - callback เมื่อเปลี่ยนสถานะย่อ/ขยาย
  */
-const Sidebar = ({ onLayerChange, onOrthoChange, collapsed, onCollapseChange }) => {
+const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onCollapseChange, orthoOpacities, onOrthoOpacityChange }) => {
   // ref สำหรับพื้นที่เลื่อนได้ (scroll area)
   const sidebarContentRef = React.useRef();
 
@@ -177,6 +189,14 @@ const Sidebar = ({ onLayerChange, onOrthoChange, collapsed, onCollapseChange }) 
     );
   };
 
+  // === State: เปิด/ปิดชั้นเรดาร์ฝน (Longdo Weather) ===
+  const [rainEnabled, setRainEnabled] = useState(false);
+
+  // แจ้ง parent เมื่อสถานะชั้นเรดาร์ฝนเปลี่ยน
+  React.useEffect(() => {
+    if (onRainChange) onRainChange(rainEnabled);
+  }, [rainEnabled, onRainChange]);
+
   return (
     // คอนเทนเนอร์ sidebar — เพิ่ม class 'collapsed' เมื่อย่อ
     <div className={`sidebar-container${collapsed ? ' collapsed' : ''}`}>
@@ -287,25 +307,43 @@ const Sidebar = ({ onLayerChange, onOrthoChange, collapsed, onCollapseChange }) 
               {cat.items.map(layer => {
                 const isActive = selectedHeatmapIds.includes(layer.id);
                 return (
-                  <div
-                    key={layer.id}
-                    className={`layer-item${isActive ? ' active' : ''}`}
-                    onClick={() => handleHeatmapToggle(layer)}
-                    title={layer.label}
-                    style={{ marginLeft: collapsed ? 0 : '16px', paddingLeft: '8px' }}
-                  >
-                    <div className="layer-icon-wrapper">
-                      <HeatIcon />
+                  <React.Fragment key={layer.id}>
+                    <div
+                      className={`layer-item${isActive ? ' active' : ''}`}
+                      onClick={() => handleHeatmapToggle(layer)}
+                      title={layer.label}
+                      style={{ marginLeft: collapsed ? 0 : '16px', paddingLeft: '8px' }}
+                    >
+                      <div className="layer-icon-wrapper">
+                        <HeatIcon />
+                      </div>
+                      {!collapsed && (
+                        <>
+                          <span className="layer-name">{layer.label}</span>
+                          <div className="layer-check">
+                            <CheckIcon />
+                          </div>
+                        </>
+                      )}
                     </div>
-                    {!collapsed && (
-                      <>
-                        <span className="layer-name">{layer.label}</span>
-                        <div className="layer-check">
-                          <CheckIcon />
+                    {!collapsed && isActive && (
+                      <div style={{ margin: '4px 16px 8px 32px', padding: '8px 10px', background: 'var(--c-bg-secondary)', borderRadius: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, color: 'var(--c-text)', marginBottom: 6 }}>
+                          <span>ความทึบ Raster</span>
+                          <span style={{ color: 'var(--c-accent-light)' }}>{Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}%</span>
                         </div>
-                      </>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}
+                          onChange={e => onOrthoOpacityChange(layer.id, Number(e.target.value) / 100)}
+                          aria-label="ปรับความทึบ Ortho"
+                          style={{ width: '100%', accentColor: 'var(--c-accent)', cursor: 'pointer' }}
+                        />
+                      </div>
                     )}
-                  </div>
+                  </React.Fragment>
                 );
               })}
             </React.Fragment>
@@ -315,27 +353,71 @@ const Sidebar = ({ onLayerChange, onOrthoChange, collapsed, onCollapseChange }) 
           orthoLayers.map(layer => {
             const isActive = selectedHeatmapIds.includes(layer.id);
             return (
-              <div
-                key={layer.id}
-                className={`layer-item${isActive ? ' active' : ''}`}
-                onClick={() => handleHeatmapToggle(layer)}
-                title={layer.label}
-              >
-                <div className="layer-icon-wrapper">
-                  <HeatIcon />
+              <React.Fragment key={layer.id}>
+                <div
+                  className={`layer-item${isActive ? ' active' : ''}`}
+                  onClick={() => handleHeatmapToggle(layer)}
+                  title={layer.label}
+                >
+                  <div className="layer-icon-wrapper">
+                    <HeatIcon />
+                  </div>
+                  {!collapsed && (
+                    <>
+                      <span className="layer-name">{layer.label}</span>
+                      <div className="layer-check">
+                        <CheckIcon />
+                      </div>
+                    </>
+                  )}
                 </div>
-                {!collapsed && (
-                  <>
-                    <span className="layer-name">{layer.label}</span>
-                    <div className="layer-check">
-                      <CheckIcon />
+                {!collapsed && isActive && (
+                  <div style={{ margin: '4px 16px 8px 24px', padding: '8px 10px', background: 'var(--c-bg-secondary)', borderRadius: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, color: 'var(--c-text)', marginBottom: 6 }}>
+                      <span>ความทึบ Raster</span>
+                      <span style={{ color: 'var(--c-accent-light)' }}>{Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}%</span>
                     </div>
-                  </>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}
+                      onChange={e => onOrthoOpacityChange(layer.id, Number(e.target.value) / 100)}
+                      aria-label="ปรับความทึบ Ortho"
+                      style={{ width: '100%', accentColor: 'var(--c-accent)', cursor: 'pointer' }}
+                    />
+                  </div>
                 )}
-              </div>
+              </React.Fragment>
             );
           })
         )}
+
+        {/* ==================== ชั้นสภาพอากาศ (เรดาร์ฝน Longdo Weather) ==================== */}
+        {!collapsed && (
+          <div className="sidebar-subheader" style={{ marginTop: '12px', paddingBottom: '4px' }}>
+            <p className="sidebar-header-title" style={{ fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+              สภาพอากาศ
+            </p>
+          </div>
+        )}
+        <div
+          className={`layer-item${rainEnabled ? ' active' : ''}`}
+          onClick={() => setRainEnabled(v => !v)}
+          title="เรดาร์ฝน (Longdo Weather)"
+        >
+          <div className="layer-icon-wrapper">
+            <RainIcon />
+          </div>
+          {!collapsed && (
+            <>
+              <span className="layer-name">เรดาร์ฝน (Longdo Weather)</span>
+              <div className="layer-check">
+                <CheckIcon />
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* ส่วนท้าย Sidebar — แสดงเฉพาะเมื่อขยาย */}

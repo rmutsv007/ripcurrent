@@ -33,14 +33,14 @@ const FeatureDetail = ({ feature, onBack, onZoomToFeature, authToken }) => {
   const fields = [
     { label: 'วันที่เก็บตัวอย่าง', value: p.date },           // วันที่เก็บตัวอย่าง
     { label: 'เวลา', value: p.time },                       // เวลา
-    { label: 'บริเวณพื้นที่เก็บตัวอย่าง', value: p.locationย่าง },              // บริเวณพื้นที่เก็บตัวอย่าง
+    { label: 'บริเวณพื้นที่เก็บตัวอย่าง', value: p.location },              // บริเวณพื้นที่เก็บตัวอย่าง
     { label: 'สีของน้ำ', value: p.สีของน้ำ },     // สีของน้ำ
     { label: 'กลิ่น', value: p.กลิ่น },           // กลิ่น
     { label: 'ตะกอน', value: p.ตะกอน },       // ตะกอน
-    { label: 'ค่าความเป็นกรด-ด่าง (pH)', value: p.ค่าความเป็นกรดด่าง }, // ค่าความเป็นกรด-ด่าง (pH)
+    { label: 'ค่าความเป็นกรด-ด่าง (pH)', value: p['ค่าความเป็นกรด-ด่าง'] }, // ค่าความเป็นกรด-ด่าง (pH)
     { label: 'คราบน้ำมัน', value: p.คราบน้ำมัน }, // คราบน้ำมัน
-    { label: 'E.Coli (โคโลนีสีฟ้า) CUF/g', value: p.EColi }, // E.Coli (โคโลนีสีฟ้า) CUF/g
-    { label: 'Coliform (โคโลนีสีม่วง) CUF/g', value: p.Coliform }, // Coliform (โคโลนีสีม่วง) CUF/g
+    { label: 'E.Coli (โคโลนีสีฟ้า) CUF/g', value: p['E.Coli'] ?? p['E.coli'] ?? p['ecoli'] }, // E.Coli (โคโลนีสีฟ้า) CUF/g
+    { label: 'Coliform (โคโลนีสีม่วง) CUF/g', value: p['Coliform'] ?? p['coliform'] }, // Coliform (โคโลนีสีม่วง) CUF/g
     { label: 'สภาพอากาศ', value: p.หมายเหตุ }, // สภาพอากาศ
   ];
 
@@ -135,7 +135,7 @@ const FeatureDetail = ({ feature, onBack, onZoomToFeature, authToken }) => {
           )}
           {/* ชื่อฟาร์ม */}
           <div style={{ fontWeight: 700, fontSize: 20, color: 'var(--c-text)', letterSpacing: 0.3 }}>
-            {p.locationย่าง || '-'}
+            {p.location || '-'}
           </div>
         </div>
 

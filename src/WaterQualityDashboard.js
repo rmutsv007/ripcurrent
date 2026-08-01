@@ -17,16 +17,26 @@ const COLI_THRESHOLD = 1000;
 // --- สีพื้นฐานสำหรับจุดตรวจ (วนลูปใช้ถ้าจุดเกิน) ---
 const CHART_COLORS = ['#16a34a', '#84cc16', '#eab308', '#dc2626', '#f97316', '#3b82f6', '#8b5cf6', '#ec4899'];
 
+// --- ลำดับจุดตรวจที่ต้องการ (ซ้ายไปขวา, บนลงล่าง) ส่วนที่ไม่อยู่ในลิสต์จะต่อท้ายตามลำดับเดิม ---
+const LOCATION_ORDER = [
+  'ชายหาดสมิหลา',
+  'ชายหาดชลาทัศน์ ช่วงสามแยกประท่า',
+  'ชายหาดชลาทัศน์ ช่วงลานวัฒนธรรมเทศบาลสงขลา',
+  'ชายหาดชลาทัศน์ ช่วงตรงข้ามค่ายกรมหลวงสงขลานครินทร์',
+  'ชายหาดเก้าเส้ง ช่วงบริเวณวัดเขาเก้าแสน',
+];
+
 // --- Custom tooltip แบบการ์ดโค้งมน ---
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload || !payload.length) return null;
   return (
     <div style={{
-      background: 'rgba(17,24,39,0.95)', color: '#fff',
-      borderRadius: 10, padding: '10px 14px', fontSize: 12,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.2)', minWidth: 160,
+      background: 'rgba(15,23,42,0.92)', color: '#fff',
+      borderRadius: 12, padding: '12px 16px', fontSize: 12,
+      boxShadow: '0 12px 32px rgba(0,0,0,0.25)', minWidth: 170,
+      border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(6px)',
     }}>
-      <div style={{ fontWeight: 700, marginBottom: 6, color: '#e5e7eb' }}>{label}</div>
+      <div style={{ fontWeight: 700, marginBottom: 8, color: '#f1f5f9', paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{label}</div>
       {payload
         .slice()
         .sort((a, b) => b.value - a.value)
@@ -36,12 +46,9 @@ function ChartTooltip({ active, payload, label }) {
           const realValue = p.payload[rawKey] !== undefined ? p.payload[rawKey] : p.value;
 
           return (
-            <div key={p.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '2px 0' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#d1d5db' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color }} />
-                {p.name}
-              </span>
-              <span style={{ fontWeight: 700 }}>{realValue.toLocaleString()}</span>
+            <div key={p.dataKey} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
+              <span style={{ fontWeight: 700 }}>{realValue.toLocaleString()} CFU/100 ml</span>
             </div>
           );
         })}
@@ -172,7 +179,14 @@ const WaterQualityDashboard = () => {
       }
     });
 
-    const locArray = Array.from(locSet);
+    const locArray = Array.from(locSet).sort((a, b) => {
+      const idxA = LOCATION_ORDER.indexOf(a);
+      const idxB = LOCATION_ORDER.indexOf(b);
+      if (idxA === -1 && idxB === -1) return 0;
+      if (idxA === -1) return 1;
+      if (idxB === -1) return -1;
+      return idxA - idxB;
+    });
     const config = locArray.map((loc, idx) => ({
       key: loc,
       label: loc,
@@ -238,12 +252,23 @@ const WaterQualityDashboard = () => {
       flexDirection: 'column',
       overflowY: 'auto'
     }}>
+      <style>{`
+        .wq-chart-card {
+          transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+        }
+        .wq-chart-card:hover {
+          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+          transform: translateY(-2px);
+          border-color: #cbd5e1;
+        }
+        .recharts-legend-item-text { font-weight: 600 !important; }
+      `}</style>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
         <div style={{
           width: 38, height: 38, borderRadius: 10,
           background: 'linear-gradient(135deg, #3b82f6, #1e3a8a)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 18, flexShrink: 0,
+          fontSize: 18, flexShrink: 0, boxShadow: '0 6px 16px rgba(59,130,246,0.35)',
         }}>📊</div>
         <div>
           <h3 style={{
@@ -260,17 +285,17 @@ const WaterQualityDashboard = () => {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
         {/* กราฟที่ 1: E.coli */}
-        <div style={{
+        <div className="wq-chart-card" style={{
           flex: '1 1 45%', minWidth: 400, background: '#ffffff',
           border: '1px solid #e5e7eb', borderRadius: 14, padding: '18px 18px 8px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, background: '#3c83f6' }} />
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: '#3c83f6', boxShadow: '0 0 0 4px rgba(60,131,246,0.15)' }} />
             <h4 style={{ margin: 0, color: '#0f172a', fontSize: 14.5, fontWeight: 700 }}>E.coli (CFU/100 ml)</h4>
           </div>
           <ResponsiveContainer width="100%" height={340}>
             <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#eef2f7" />
               <XAxis dataKey="date" tick={{ fontSize: 11.5, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
               <YAxis
                 scale="log" domain={[1, 100000]} ticks={logTicks}
@@ -278,8 +303,8 @@ const WaterQualityDashboard = () => {
                 tickFormatter={(tick) => tick === 1 ? '0' : tick.toLocaleString()} // สั่งว่าถ้าค่าคือ 1 ให้แสดงเป็น 0
                 axisLine={false} tickLine={false}
               />
-              <Tooltip content={<ChartTooltip />} />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: 11.5, paddingTop: 8 }} />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 11.5, paddingTop: 10 }} />
 
               <ReferenceLine
                 y={ECOLI_THRESHOLD} stroke="#ef4444" strokeDasharray="4 4" strokeWidth={1.5}
@@ -289,14 +314,17 @@ const WaterQualityDashboard = () => {
               {locationsConfig.map(loc => (
                 <Line
                   key={loc.key}
-                  type="linear"     // <--- เปลี่ยนเป็นแบบนี้แทน
+                  type="linear"
                   dataKey={`${loc.key}_ecoli`}
                   name={loc.label}
                   stroke={loc.color}
-                  strokeWidth={2.25}
-                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 0 }}
-                  activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
-                  connectNulls={true} 
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2, style: { filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' } }}
+                  connectNulls={true}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 />
               ))}
             </LineChart>
@@ -304,17 +332,17 @@ const WaterQualityDashboard = () => {
         </div>
 
         {/* กราฟที่ 2: Coliform */}
-        <div style={{
+        <div className="wq-chart-card" style={{
           flex: '1 1 45%', minWidth: 400, background: '#ffffff',
           border: '1px solid #e5e7eb', borderRadius: 14, padding: '18px 18px 8px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 3, background: '#7e22ce' }} />
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: '#7e22ce', boxShadow: '0 0 0 4px rgba(126,34,206,0.15)' }} />
             <h4 style={{ margin: 0, color: '#0f172a', fontSize: 14.5, fontWeight: 700 }}>Coliform (CFU/100 ml)</h4>
           </div>
           <ResponsiveContainer width="100%" height={340}>
             <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#eef2f7" />
               <XAxis dataKey="date" tick={{ fontSize: 11.5, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
               <YAxis
                 scale="log" domain={[1, 100000]} ticks={logTicks}
@@ -322,8 +350,8 @@ const WaterQualityDashboard = () => {
                 tickFormatter={(tick) => tick === 1 ? '0' : tick.toLocaleString()} // สั่งว่าถ้าค่าคือ 1 ให้แสดงเป็น 0
                 axisLine={false} tickLine={false}
               />
-              <Tooltip content={<ChartTooltip />} />
-              <Legend iconType="circle" wrapperStyle={{ fontSize: 11.5, paddingTop: 8 }} />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 11.5, paddingTop: 10 }} />
 
               <ReferenceLine
                 y={COLI_THRESHOLD} stroke="#ef4444" strokeDasharray="4 4" strokeWidth={1.5}
@@ -333,14 +361,17 @@ const WaterQualityDashboard = () => {
               {locationsConfig.map(loc => (
                 <Line
                   key={loc.key}
-                  type="linear"     // <--- เปลี่ยนเป็นแบบนี้แทน
+                  type="linear"
                   dataKey={`${loc.key}_coli`}
                   name={loc.label}
                   stroke={loc.color}
-                  strokeWidth={2.25}
-                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 0 }}
-                  activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
-                  connectNulls={true} 
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2, style: { filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' } }}
+                  connectNulls={true}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 />
               ))}
             </LineChart>

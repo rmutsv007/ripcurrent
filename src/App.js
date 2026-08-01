@@ -26,6 +26,8 @@ import Sidebar from './Sidebar';                 // แถบเมนูเล�
 import Login from './Login';                     // หน้าเข้าสู่ระบบผู้ดูแล
 import layers from './layers';                   // รายการชั้นข้อมูลทั้งหมด
 import orthoLayers from './orthoLayers';         // รายการชั้น Ortho / ความหนาแน่น
+import RainLegend from './RainLegend';           // คำอธิบายความเข้มฝนของ Layer เรดาร์ฝน
+import RainTimeline from './RainTimeline';       // แถบเวลา + ควบคุมความเร็วของเรดาร์ฝน
 
 // === นำเข้า CSS เพิ่มเติม ===
 import './MapOverrides.css';  // ปรับแต่ง style ของ Leaflet (popup, tooltip, zoom)
@@ -44,6 +46,10 @@ const BASEMAPS = [
   { id: 'esri-satellite', label: 'Satellite',   url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' },
   { id: 'esri-topo',  label: 'Topo',            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}' },
 ];
+
+// กุญแจ Longdo Weather API (ขอรับฟรีได้ที่ https://api.longdo.com/console/) ต้องตั้งค่าใน .env เป็น REACT_APP_LONGDO_WEATHER_KEY
+const LONGDO_WEATHER_KEY = process.env.REACT_APP_LONGDO_WEATHER_KEY || '';
+const RAIN_LAYER_URL = `https://weather.longdo.com/rain/api/v1/layer/latest/{z}/{x}/{y}.png?key=${LONGDO_WEATHER_KEY}`;
 
 /**
  * getFeatureViewTarget — คำนวณตำแหน่งและขอบเขตของ feature บนแผนที่
@@ -68,52 +74,6 @@ function getFeatureViewTarget(feature) {
   return { center: L.latLng(coords[1], coords[0]), bounds: null };
 }
 
-function OrthoOpacityControl({ value, onChange }) {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (ref.current) {
-      L.DomEvent.disableClickPropagation(ref.current);
-      L.DomEvent.disableScrollPropagation(ref.current);
-    }
-  }, []);
-
-  const percent = Math.round(value * 100);
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        position: 'absolute', left: 10, bottom: 24, zIndex: 1000,
-        background: 'var(--c-bg-primary)',
-        border: '1px solid var(--c-border)',
-        borderRadius: 8,
-        padding: '10px 12px',
-        boxShadow: 'var(--c-shadow-lg)',
-        fontFamily: 'Sarabun, sans-serif',
-        width: 190,
-      }}
-    >
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        marginBottom: 8, fontSize: 12, fontWeight: 600, color: 'var(--c-text)',
-      }}>
-        <span>ความทึบ Raster</span>
-        <span style={{ color: 'var(--c-accent-light)' }}>{percent}%</span>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={100}
-        value={percent}
-        onChange={e => onChange(Number(e.target.value) / 100)}
-        aria-label="ปรับความทึบ Ortho"
-        style={{ width: '100%', accentColor: 'var(--c-accent)', cursor: 'pointer' }}
-      />
-    </div>
-  );
-}
-
 function MapInstanceBridge({ mapRef }) {
   const map = useMap();
   useEffect(() => {
@@ -133,11 +93,13 @@ function LayerPaneSetup() {
     if (!map.getPane('amphoePane')) map.createPane('amphoePane');
     if (!map.getPane('OrthoPane')) map.createPane('OrthoPane');
     if (!map.getPane('waterwayPane')) map.createPane('waterwayPane');
+    if (!map.getPane('rainPane')) map.createPane('rainPane');
     if (!map.getPane('livestockPane')) map.createPane('livestockPane');
 
     map.getPane('amphoePane').style.zIndex = 330;
     map.getPane('waterwayPane').style.zIndex = 339;
     map.getPane('OrthoPane').style.zIndex = 340;
+    map.getPane('rainPane').style.zIndex = 345;
     map.getPane('livestockPane').style.zIndex = 350;
   }, [map]);
   return null;
@@ -156,7 +118,12 @@ function App() {
   const searchValue = "";
   const [selectedLayerIds, setSelectedLayerIds] = useState([]);
   const [selectedOrthoIds, setSelectedOrthoIds] = useState([]);
-  const [OrthoOpacity, setOrthoOpacity] = useState(0.4);
+  const [orthoOpacities, setOrthoOpacities] = useState({}); // ความทึบแยกตาม layer.id คงค่าเดิมไว้แม้ปิดแล้วเปิดใหม่
+  const [rainEnabled, setRainEnabled] = useState(false);
+  const [rainFrames, setRainFrames] = useState([]); // ภาพเรดาร์ย้อนหลัง [{ time, path }] เรียงจากเก่าไปใหม่
+  const [rainFrameIdx, setRainFrameIdx] = useState(0);
+  const [rainPlaying, setRainPlaying] = useState(true);
+  const [rainSpeed, setRainSpeed] = useState(1); // ตัวคูณความเร็ว 0.5x / 1x / 2x
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [basemapId, setBasemapId] = useState(() => localStorage.getItem('basemap') || 'osm');
   const [basemapOpen, setBasemapOpen] = useState(false);
@@ -299,6 +266,54 @@ function App() {
     });
   }, [selectedLayerIds]);
 
+  // ดึงรายการภาพเรดาร์ฝนย้อนหลังมาทำเป็นภาพเคลื่อนไหว
+  useEffect(() => {
+    if (!rainEnabled || !LONGDO_WEATHER_KEY) return;
+    let cancelled = false;
+
+    const fetchList = () => {
+      fetch(`https://weather.longdo.com/rain/api/v1/layer/list?key=${LONGDO_WEATHER_KEY}`)
+        .then(res => res.json())
+        .then(data => {
+          if (cancelled) return;
+          const past = data?.radar?.past || [];
+          if (past.length > 0) {
+            setRainFrames(past);
+            setRainFrameIdx(past.length - 1); // เริ่มที่เฟรมล่าสุด
+          }
+        })
+        .catch(err => console.error('Fetch rain layer list error:', err));
+    };
+
+    fetchList();
+    const refreshTimer = setInterval(fetchList, 5 * 60 * 1000); // รีเฟรชรายการเฟรมทุก 5 นาที
+    return () => { cancelled = true; clearInterval(refreshTimer); };
+  }, [rainEnabled]);
+
+  // สลับเฟรมเรดาร์ฝนวนลูปให้เห็นทิศทางการเคลื่อนที่ของกลุ่มฝน
+  useEffect(() => {
+    if (!rainEnabled || !rainPlaying || rainFrames.length === 0) return;
+    const baseInterval = 1000; // ms ต่อเฟรมที่ความเร็วปกติ (1x)
+    const playTimer = setInterval(() => {
+      setRainFrameIdx(i => (i + 1) % rainFrames.length);
+    }, baseInterval / rainSpeed);
+    return () => clearInterval(playTimer);
+  }, [rainEnabled, rainPlaying, rainFrames, rainSpeed]);
+
+  // เลื่อนดูเฟรมด้วยตนเองจะหยุดเล่นอัตโนมัติไว้ก่อน
+  const handleRainSeek = idx => {
+    setRainPlaying(false);
+    setRainFrameIdx(idx);
+  };
+
+  const rainTileUrl = rainFrames.length > 0
+    ? `https://weather.longdo.com${rainFrames[rainFrameIdx].path}/{z}/{x}/{y}.png?key=${LONGDO_WEATHER_KEY}`
+    : RAIN_LAYER_URL; // ระหว่างโหลดรายการเฟรม ให้ใช้ภาพล้าสุดไปก่อน
+
+  const handleOrthoOpacityChange = (layerId, value) => {
+    setOrthoOpacities(prev => ({ ...prev, [layerId]: value }));
+  };
+
   const handleZoomToFeature = feature => {
     mapRef.current?.closePopup();
 
@@ -433,6 +448,9 @@ function App() {
               setSelectedLayerIds(ids); mapRef.current?.closePopup(); hideHighlight();
             }}
             onOrthoChange={setSelectedOrthoIds}
+            onRainChange={setRainEnabled}
+            orthoOpacities={orthoOpacities}
+            onOrthoOpacityChange={handleOrthoOpacityChange}
             collapsed={sidebarCollapsed}
             onCollapseChange={setSidebarCollapsed}
           />
@@ -525,12 +543,33 @@ function App() {
                     key={layer.id}
                     url="https://map.surveywms.com/geoserver/ChalatatSongkhla/wms"
                     layers={`ChalatatSongkhla:${layer.name}`}
-                    format="image/png" transparent={true} version="1.1.1" maxZoom={24} opacity={OrthoOpacity} pane="OrthoPane"
+                    format="image/png" transparent={true} version="1.1.1" maxZoom={24} opacity={orthoOpacities[layer.id] ?? 0.4} pane="OrthoPane"
                   />
                 ))}
 
-              {selectedOrthoIds.length > 0 && (
-                <OrthoOpacityControl value={OrthoOpacity} onChange={setOrthoOpacity} />
+              {rainEnabled && (
+                <>
+                  <TileLayer
+                    url={rainTileUrl}
+                    opacity={0.7}
+                    maxZoom={24}
+                    minZoom={0}
+                    maxNativeZoom={13}
+                    minNativeZoom={5}
+                    pane="rainPane"
+                  />
+                  <RainLegend />
+                  <RainTimeline
+                    frames={rainFrames}
+                    currentIndex={rainFrameIdx}
+                    onSeek={handleRainSeek}
+                    playing={rainPlaying}
+                    onTogglePlay={() => setRainPlaying(v => !v)}
+                    speed={rainSpeed}
+                    onSpeedChange={setRainSpeed}
+                    centered={dashboardCollapsed}
+                  />
+                </>
               )}
 
               <MapFeatureCircles
