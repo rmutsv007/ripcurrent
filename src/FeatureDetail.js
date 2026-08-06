@@ -1,7 +1,7 @@
 /**
  * FeatureDetail.js — คอมโพเนนต์แสดงรายละเอียดฟาร์ม
  * แสดงข้อมูลของฟาร์มที่เลือก เช่น ชื่อ, เจ้าของ, ที่อยู่, จำนวนสัตว์
- * มีปุ่มซูมไปตำแหน่งบนแผนที่ และปุ่มนำทาง Google Map
+ * มีปุ่มซูมไปตำแหน่งบนแผนที่
  */
 
 import React from 'react';
@@ -125,11 +125,11 @@ const FeatureDetail = ({ feature, onBack, onZoomToFeature, authToken }) => {
               justifyContent: 'center',
               margin: '0 auto 12px', // จัดกลาง
             }}>
-              {/* รูปไอคอนจาก GeoServer GetLegendGraphic */}
+              {/* ใช้ layer.icon ถ้ามี มิฉะนั้น fallback ไป GeoServer GetLegendGraphic */}
               <img
-                src={`https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:30;symbolHeight:30')}&TRANSPARENT=true`}
+                src={layer.icon || `https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:30;symbolHeight:30')}&TRANSPARENT=true`}
                 alt={typeName}
-                style={{ width: 36, height: 36, objectFit: 'contain' }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
             </div>
           )}
@@ -195,35 +195,6 @@ const FeatureDetail = ({ feature, onBack, onZoomToFeature, authToken }) => {
               </svg>
               ซูมไปตำแหน่ง
             </button>
-            {/* ลิงก์นำทาง Google Map — เปิดในแท็บใหม่ */}
-            <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'var(--c-accent-bg)',
-                color: 'var(--c-accent-light)',
-                padding: '10px 20px',
-                borderRadius: 10,
-                textDecoration: 'none',
-                fontWeight: 600,
-                fontSize: 14,
-                border: '1px solid var(--c-accent-border)',
-                transition: 'all 0.2s',
-              }}
-              onMouseOver={e => { e.currentTarget.style.background = 'var(--c-accent-bg-hover)'; }}
-              onMouseOut={e => { e.currentTarget.style.background = 'var(--c-accent-bg)'; }}
-            >
-              {/* ไอคอน map pin */}
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 1C5.24 1 3 3.24 3 6c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5z" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-                <circle cx="8" cy="6" r="2" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-              </svg>
-              นำทาง Google Map
-            </a>
           </div>
         )}
 

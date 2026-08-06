@@ -10,8 +10,8 @@ const layers = [
   {
     category: 'ข้อมูลพื้นฐาน',
     items: [
-      { id: 'ขอบเขตชายหาด', name: 'ขอบเขตชายหาด', label: 'ขอบเขตชายหาด', kind: 'line' },
-      { id: 'Contour', name: 'Contour', label: 'เส้นชั้นความสูง', kind: 'line' },
+      { id: 'ขอบเขตชายหาด', name: 'ขอบเขตชายหาด', label: 'ขอบเขตชายหาด', kind: 'line', icon: '/assets/beach.png', iconSize: 44 },
+      { id: 'Contour', name: 'Contour', label: 'เส้นชั้นความสูง', kind: 'line', icon: '/assets/contour.png', iconSize: 40 },
     ]
   },
   {

@@ -5,6 +5,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import './RainTimeline.css';
 
 const SPEED_OPTIONS = [0.5, 1, 2];
 const HALF_HOUR = 1800;
@@ -85,47 +86,48 @@ const RainTimeline = ({ frames, currentIndex, onSeek, playing, onTogglePlay, spe
           )}
         </button>
         <div style={{ position: 'relative', flex: 1 }}>
-          <input
-            type="range"
-            min={0}
-            max={frames.length - 1}
-            step={1}
-            value={currentIndex}
-            onChange={e => onSeek(Number(e.target.value))}
-            aria-label="เลื่อนดูภาพเรดาร์ฝนย้อนหลัง"
-            style={{ width: '100%', accentColor: 'var(--c-accent)', cursor: 'pointer', display: 'block' }}
-          />
-          {halfHourTicks.length > 0 && (
-            <div style={{ position: 'relative', height: 16, marginTop: 2 }}>
-              {halfHourTicks.map(t => {
-                const pct = frames.length > 1 ? (t.index / (frames.length - 1)) * 100 : 50;
-                // ซ่อนตัวเลขชั่วโมงที่อยู่ใกล้ขอบเกินไป กันไม่ให้ไปทับป้ายเวลาเริ่ม/สิ้นสุดด้านล่าง
-                const showLabel = t.time % HOUR === 0 && pct > 6 && pct < 94;
-                return (
-                  <div
-                    key={t.index}
-                    style={{
-                      position: 'absolute', left: `${pct}%`,
-                      transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    }}
-                  >
-                    <span style={{ width: 1, height: t.time % HOUR === 0 ? 6 : 4, background: 'var(--c-border)' }} />
-                    {showLabel && (
-                      <span style={{ fontSize: 9, color: 'var(--c-text-secondary)', whiteSpace: 'nowrap' }}>
-                        {formatTime(t.time)}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {/* tick marks อยู่ใต้ slider เป็น layer ซ้อนกัน */}
+          <div className="rain-track-wrap">
+            <input
+              type="range"
+              min={0}
+              max={frames.length - 1}
+              step={1}
+              value={currentIndex}
+              onChange={e => onSeek(Number(e.target.value))}
+              aria-label="เลื่อนดูภาพเรดาร์ฝนย้อนหลัง"
+              className="rain-slider"
+              style={{ '--val': `${frames.length > 1 ? (currentIndex / (frames.length - 1)) * 100 : 0}%` }}
+            />
+            {halfHourTicks.length > 0 && (
+              <div className="rain-ticks">
+                {/* ป้ายเวลาเริ่ม/สิ้นสุด — ใช้โครงสร้างเดียวกับ tick เพื่อให้อยู่ระดับเดียวกัน */}
+                <div className="rain-tick" style={{ left: 'calc(8px)', transform: 'translateX(-50%)' }}>
+                  <span className="rain-tick-line hour" />
+                  <span className="rain-tick-label">{formatTime(frames[0].time)}</span>
+                </div>
+                <div className="rain-tick" style={{ left: 'calc(100% - 8px)', transform: 'translateX(-50%)' }}>
+                  <span className="rain-tick-line hour" />
+                  <span className="rain-tick-label">{formatTime(frames[frames.length - 1].time)}</span>
+                </div>
+                {halfHourTicks.map(t => {
+                  const pct = frames.length > 1 ? (t.index / (frames.length - 1)) * 100 : 50;
+                  const isHour = t.time % HOUR === 0;
+                  const showLabel = isHour && pct > 6 && pct < 94;
+                  return (
+                    // thumb วิ่งใน range [8px, 100%-8px] ต้องชดเชย inset 8px (= half thumb width)
+                    <div key={t.index} className="rain-tick" style={{ left: `calc(8px + (100% - 16px) * ${pct} / 100)` }}>
+                      <span className={`rain-tick-line${isHour ? ' hour' : ''}`} />
+                      {showLabel && (
+                        <span className="rain-tick-label">{formatTime(t.time)}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--c-text-secondary)' }}>
-        <span>{formatTime(frames[0].time)}</span>
-        <span>{formatTime(frames[frames.length - 1].time)}</span>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 /**
  * MapFeatureCircles.js — คอมโพเนนต์วาดจุดข้อมูลฟาร์มบนแผนที่
  * วาด Circle สำหรับแต่ละฟาร์ม แสดง Tooltip ชื่อฟาร์ม
- * เมื่อคลิกจะเปิด Popup แสดงข้อมูลย่อ + ปุ่มดูข้อมูล + ปุ่มนำทาง
+ * เมื่อคลิกจะเปิด Popup แสดงข้อมูลย่อ + ปุ่มดูข้อมูล
  */
 
 // === นำเข้า react-leaflet components ===
@@ -125,29 +125,6 @@ function buildPopupContent(feature, lat, lng, onViewDetail) {
   });
   actions.appendChild(viewBtn);
 
-  // --- ลิงก์ "นำทาง Google Map" ---
-  const link = document.createElement('a');
-  link.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`; // URL นำทาง Google Map
-  link.target = '_blank';        // เปิดในแท็บใหม่
-  link.rel = 'noopener noreferrer'; // ความปลอดภัย
-  link.textContent = 'นำทาง Google Map';
-  link.style.display = 'inline-flex';
-  link.style.alignItems = 'center';
-  link.style.background = 'var(--c-accent-bg)';
-  link.style.color = 'var(--c-accent-light)';
-  link.style.padding = '6px 14px';
-  link.style.borderRadius = '8px';
-  link.style.border = '1px solid var(--c-accent-border)';
-  link.style.textDecoration = 'none';
-  link.style.fontWeight = '600';
-  link.style.fontSize = '13px';
-  link.style.fontFamily = 'Sarabun-Medium, sans-serif';
-  link.style.transition = 'all 0.2s';
-  // เอฟเฟกต์ hover
-  link.addEventListener('mouseenter', () => { link.style.background = 'var(--c-accent-bg-hover)'; });
-  link.addEventListener('mouseleave', () => { link.style.background = 'var(--c-accent-bg)'; });
-
-  actions.appendChild(link);
   wrapper.appendChild(actions);
 
   return wrapper; // คืน DOM element ทั้งหมด

@@ -244,8 +244,9 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
                   >
                     <div className="layer-icon-wrapper">
                       <img
-                        src={`https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:40;symbolHeight:40')}&TRANSPARENT=true`}
+                        src={layer.icon || `https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:40;symbolHeight:40')}&TRANSPARENT=true`}
                         alt={displayName}
+                        style={{ width: layer.iconSize ?? 22, height: layer.iconSize ?? 22, objectFit: 'contain' }}
                       />
                     </div>
                     {!collapsed && (
@@ -275,8 +276,9 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
               >
                 <div className="layer-icon-wrapper">
                   <img
-                    src={`https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:40;symbolHeight:40')}&TRANSPARENT=true`}
+                    src={layer.icon || `https://map.surveywms.com/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=ChalatatSongkhla:${encodeURIComponent(layer.name)}&LEGEND_OPTIONS=${encodeURIComponent('dpi:2400;antialiasing:on;fontAntiAliasing:on;forceRule:True;symbolWidth:40;symbolHeight:40')}&TRANSPARENT=true`}
                     alt={displayName}
+                    style={{ width: layer.iconSize ?? 22, height: layer.iconSize ?? 22, objectFit: 'contain' }}
                   />
                 </div>
                 {!collapsed && (
@@ -315,7 +317,9 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
                       style={{ marginLeft: collapsed ? 0 : '16px', paddingLeft: '8px' }}
                     >
                       <div className="layer-icon-wrapper">
-                        <HeatIcon />
+                        {layer.icon
+                          ? <img src={layer.icon} alt={layer.label} style={{ width: layer.iconSize ?? 22, height: layer.iconSize ?? 22, objectFit: 'contain' }} />
+                          : <HeatIcon />}
                       </div>
                       {!collapsed && (
                         <>
@@ -327,10 +331,10 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
                       )}
                     </div>
                     {!collapsed && isActive && (
-                      <div style={{ margin: '4px 16px 8px 32px', padding: '8px 10px', background: 'var(--c-bg-secondary)', borderRadius: 8 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, color: 'var(--c-text)', marginBottom: 6 }}>
-                          <span>ความทึบ Raster</span>
-                          <span style={{ color: 'var(--c-accent-light)' }}>{Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}%</span>
+                      <div className="opacity-slider-wrap">
+                        <div className="opacity-slider-header">
+                          <span>ความทึบ</span>
+                          <span>{Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}%</span>
                         </div>
                         <input
                           type="range"
@@ -339,7 +343,8 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
                           value={Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}
                           onChange={e => onOrthoOpacityChange(layer.id, Number(e.target.value) / 100)}
                           aria-label="ปรับความทึบ Ortho"
-                          style={{ width: '100%', accentColor: 'var(--c-accent)', cursor: 'pointer' }}
+                          className="opacity-slider"
+                          style={{ '--val': `${Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}%` }}
                         />
                       </div>
                     )}
@@ -360,7 +365,9 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
                   title={layer.label}
                 >
                   <div className="layer-icon-wrapper">
-                    <HeatIcon />
+                    {layer.icon
+                      ? <img src={layer.icon} alt={layer.label} style={{ width: layer.iconSize ?? 22, height: layer.iconSize ?? 22, objectFit: 'contain' }} />
+                      : <HeatIcon />}
                   </div>
                   {!collapsed && (
                     <>
@@ -372,10 +379,10 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
                   )}
                 </div>
                 {!collapsed && isActive && (
-                  <div style={{ margin: '4px 16px 8px 24px', padding: '8px 10px', background: 'var(--c-bg-secondary)', borderRadius: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, color: 'var(--c-text)', marginBottom: 6 }}>
-                      <span>ความทึบ Raster</span>
-                      <span style={{ color: 'var(--c-accent-light)' }}>{Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}%</span>
+                  <div className="opacity-slider-wrap no-cat">
+                    <div className="opacity-slider-header">
+                      <span>ความทึบ</span>
+                      <span>{Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}%</span>
                     </div>
                     <input
                       type="range"
@@ -384,7 +391,8 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
                       value={Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}
                       onChange={e => onOrthoOpacityChange(layer.id, Number(e.target.value) / 100)}
                       aria-label="ปรับความทึบ Ortho"
-                      style={{ width: '100%', accentColor: 'var(--c-accent)', cursor: 'pointer' }}
+                      className="opacity-slider"
+                      style={{ '--val': `${Math.round((orthoOpacities[layer.id] ?? 0.4) * 100)}%` }}
                     />
                   </div>
                 )}
@@ -407,7 +415,7 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
           title="เรดาร์ฝน (Longdo Weather)"
         >
           <div className="layer-icon-wrapper">
-            <RainIcon />
+            <img src="/assets/heavy-rain.png" alt="เรดาร์ฝน" style={{ width: 22, height: 22, objectFit: 'contain' }} />
           </div>
           {!collapsed && (
             <>
