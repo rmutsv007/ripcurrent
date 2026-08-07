@@ -56,18 +56,6 @@ const HeatIcon = () => (
 );
 
 /**
- * RainIcon — ไอคอนสำหรับชั้นเรดาร์ฝน (Longdo Weather)
- */
-const RainIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <path d="M6 8.5a3.5 3.5 0 0 1 6.8-1.2A3 3 0 0 1 14.5 13H6a3 3 0 0 1-1.2-5.75" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" fill="none"/>
-    <line x1="7" y1="15" x2="6" y2="17.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-    <line x1="10" y1="15" x2="9" y2="17.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-    <line x1="13" y1="15" x2="12" y2="17.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-  </svg>
-);
-
-/**
  * WindIcon — ไอคอนสำหรับชั้นลมเคลื่อนไหว (leaflet-velocity)
  */
 const WindIcon = () => (
