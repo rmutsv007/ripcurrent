@@ -17,7 +17,10 @@ function WindLayer({ windData, pane = 'windPane' }) {
   const map = useMap();
 
   useEffect(() => {
-    if (!windData) return;
+    if (!windData || !map) return;
+    
+    // ตรวจสอบว่า Container ของแผนที่ยังมีอยู่ใน DOM หรือไม่ก่อนทำงาน
+    if (!map.getContainer()) return;
 
     const velocityLayer = L.velocityLayer({
       displayValues: true,
@@ -34,10 +37,21 @@ function WindLayer({ windData, pane = 'windPane' }) {
       paneName: pane,
     });
 
-    velocityLayer.addTo(map);
+    try {
+      velocityLayer.addTo(map);
+    } catch (e) {
+      console.warn("Error adding WindLayer:", e);
+    }
 
     return () => {
-      map.removeLayer(velocityLayer);
+      // ตรวจสอบความปลอดภัยก่อนสั่ง removeLayer เพื่อป้องกัน Error
+      try {
+        if (map && map.getContainer() && map.hasLayer(velocityLayer)) {
+          map.removeLayer(velocityLayer);
+        }
+      } catch (e) {
+        console.warn("WindLayer cleanup error:", e);
+      }
     };
   }, [map, windData, pane]);
 

@@ -3,7 +3,7 @@
  * ไฟล์นี้ทำหน้าที่:
  * 1. สร้าง React root element
  * 2. Render คอมโพเนนต์ App ลงใน DOM
- * 3. เปิดใช้งาน StrictMode สำหรับตรวจจับปัญหาระหว่างพัฒนา
+ * 3. เอา StrictMode ออกเพื่อป้องกัน Leaflet Plugins เอ๋อระหว่างพัฒนา
  */
 
 import React from 'react';                      // React library
@@ -15,11 +15,9 @@ import reportWebVitals from './reportWebVitals'; // เครื่องมื�
 // สร้าง React root จาก element #root ใน index.html
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-// Render แอปพลิเคชัน
+// Render แอปพลิเคชัน (ลบ React.StrictMode ออกแล้ว)
 root.render(
-  <React.StrictMode>  {/* StrictMode: ตรวจจับปัญหาใน development mode */}
-    <App />            {/* คอมโพเนนต์หลัก */}
-  </React.StrictMode>
+  <App />
 );
 
 // วัดประสิทธิภาพ (Web Vitals)
