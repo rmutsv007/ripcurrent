@@ -28,7 +28,7 @@ import layers from './layers';                   // รายการชั้�
 import orthoLayers from './orthoLayers';         // รายการชั้น Ortho / ความหนาแน่น
 import RainLegend from './RainLegend';           // คำอธิบายความเข้มฝนของ Layer เรดาร์ฝน
 import RainTimeline from './RainTimeline';       // แถบเวลา + ควบคุมความเร็วของเรดาร์ฝน
-
+import WindLayer from './WindLayer';             // ชั้นลมเคลื่อนไหวแบบ particle (leaflet-velocity)
 // === นำเข้า CSS เพิ่มเติม ===
 import './MapOverrides.css';  // ปรับแต่ง style ของ Leaflet (popup, tooltip, zoom)
 import './sarabun-font.css';  // ฟอนต์ภาษาไทย Sarabun
@@ -95,12 +95,15 @@ function LayerPaneSetup() {
     if (!map.getPane('waterwayPane')) map.createPane('waterwayPane');
     if (!map.getPane('rainPane')) map.createPane('rainPane');
     if (!map.getPane('livestockPane')) map.createPane('livestockPane');
+    if (!map.getPane('windPane')) map.createPane('windPane');
 
     map.getPane('amphoePane').style.zIndex = 330;
     map.getPane('waterwayPane').style.zIndex = 339;
     map.getPane('OrthoPane').style.zIndex = 340;
     map.getPane('rainPane').style.zIndex = 345;
     map.getPane('livestockPane').style.zIndex = 350;
+    map.getPane('windPane').style.zIndex = 355;
+    map.getPane('windPane').style.pointerEvents = 'none'; // อย่าบังการคลิกจุดข้อมูลใต้ชั้นลม
   }, [map]);
   return null;
 }
@@ -124,6 +127,8 @@ function App() {
   const [rainFrameIdx, setRainFrameIdx] = useState(0);
   const [rainPlaying, setRainPlaying] = useState(true);
   const [rainSpeed, setRainSpeed] = useState(1); // ตัวคูณความเร็ว 0.5x / 1x / 2x
+  const [windEnabled, setWindEnabled] = useState(false);
+  const [windData, setWindData] = useState(null); // ข้อมูลลมรูปแบบ u/v grid (leaflet-velocity) — ตอนนี้เป็นข้อมูลตัวอย่าง (demo, ไม่ real-time)
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [basemapId, setBasemapId] = useState(() => localStorage.getItem('basemap') || 'osm');
   const [basemapOpen, setBasemapOpen] = useState(false);
@@ -310,6 +315,17 @@ function App() {
     ? `https://weather.longdo.com${rainFrames[rainFrameIdx].path}/{z}/{x}/{y}.png?key=${LONGDO_WEATHER_KEY}`
     : RAIN_LAYER_URL; // ระหว่างโหลดรายการเฟรม ให้ใช้ภาพล้าสุดไปก่อน
 
+  // โหลดข้อมูลลมตัวอย่างเมื่อเปิดชั้นลม (ยังไม่ใช่ข้อมูล real-time — ดู README/TODO สำหรับต่อยอด GFS จริง)
+  useEffect(() => {
+    if (!windEnabled || windData) return;
+    let cancelled = false;
+    fetch(process.env.PUBLIC_URL + '/data/wind-sample.json')
+      .then(res => res.json())
+      .then(data => { if (!cancelled) setWindData(data); })
+      .catch(err => console.error('Fetch wind data error:', err));
+    return () => { cancelled = true; };
+  }, [windEnabled, windData]);
+
   const handleOrthoOpacityChange = (layerId, value) => {
     setOrthoOpacities(prev => ({ ...prev, [layerId]: value }));
   };
@@ -449,6 +465,7 @@ function App() {
             }}
             onOrthoChange={setSelectedOrthoIds}
             onRainChange={setRainEnabled}
+            onWindChange={setWindEnabled}
             orthoOpacities={orthoOpacities}
             onOrthoOpacityChange={handleOrthoOpacityChange}
             collapsed={sidebarCollapsed}
@@ -571,6 +588,8 @@ function App() {
                   />
                 </>
               )}
+
+              {windEnabled && windData && <WindLayer windData={windData} pane="windPane" />}
 
               <MapFeatureCircles
                 features={filteredPoints}

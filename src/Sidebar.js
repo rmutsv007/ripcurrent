@@ -68,12 +68,23 @@ const RainIcon = () => (
 );
 
 /**
+ * WindIcon — ไอคอนสำหรับชั้นลมเคลื่อนไหว (leaflet-velocity)
+ */
+const WindIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <path d="M2.5 6.5h9a2 2 0 1 0-2-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    <path d="M2.5 10.5h11.5a2.2 2.2 0 1 1-2.2 2.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    <path d="M2.5 14.5h7a1.7 1.7 0 1 0-1.7-1.7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+);
+
+/**
  * Sidebar — คอมโพเนนต์แถบเมนูเลือกชั้นข้อมูล
  * @param {Function} onLayerChange - callback เมื่อเปลี่ยนชั้นข้อมูลที่เลือก (ส่ง array ของ IDs)
  * @param {boolean} collapsed - สถานะย่อ/ขยาย
  * @param {Function} onCollapseChange - callback เมื่อเปลี่ยนสถานะย่อ/ขยาย
  */
-const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onCollapseChange, orthoOpacities, onOrthoOpacityChange }) => {
+const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, collapsed, onCollapseChange, orthoOpacities, onOrthoOpacityChange }) => {
   // ref สำหรับพื้นที่เลื่อนได้ (scroll area)
   const sidebarContentRef = React.useRef();
 
@@ -196,6 +207,14 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
   React.useEffect(() => {
     if (onRainChange) onRainChange(rainEnabled);
   }, [rainEnabled, onRainChange]);
+
+  // === State: เปิด/ปิดชั้นลมเคลื่อนไหว (leaflet-velocity) ===
+  const [windEnabled, setWindEnabled] = useState(false);
+
+  // แจ้ง parent เมื่อสถานะชั้นลมเปลี่ยน
+  React.useEffect(() => {
+    if (onWindChange) onWindChange(windEnabled);
+  }, [windEnabled, onWindChange]);
 
   return (
     // คอนเทนเนอร์ sidebar — เพิ่ม class 'collapsed' เมื่อย่อ
@@ -420,6 +439,25 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, collapsed, onColl
           {!collapsed && (
             <>
               <span className="layer-name">เรดาร์ฝน (Longdo Weather)</span>
+              <div className="layer-check">
+                <CheckIcon />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ==================== ชั้นลมเคลื่อนไหว (ข้อมูลตัวอย่าง — ยังไม่ใช่ข้อมูลจริง) ==================== */}
+        <div
+          className={`layer-item${windEnabled ? ' active' : ''}`}
+          onClick={() => setWindEnabled(v => !v)}
+          title="ลมเคลื่อนไหว (ข้อมูลตัวอย่าง)"
+        >
+          <div className="layer-icon-wrapper">
+            <WindIcon />
+          </div>
+          {!collapsed && (
+            <>
+              <span className="layer-name">ลมเคลื่อนไหว (ตัวอย่าง)</span>
               <div className="layer-check">
                 <CheckIcon />
               </div>
