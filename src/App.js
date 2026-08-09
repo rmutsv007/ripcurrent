@@ -1,11 +1,9 @@
 /**
  * App.js — คอมโพเนนต์หลักของแอปพลิเคชัน
- * ทำหน้าที่จัดวาง Layout ทั้งหมด: Header, Sidebar, Map, Dashboard
- * รวมถึงจัดการ State หลัก เช่น ธีม, แผนที่ฐาน, ข้อมูลจุด, และ Layer ที่เลือก
  */
 
 import React, { useRef, useState, useEffect } from 'react';
-import { MapContainer, TileLayer, WMSTileLayer, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, WMSTileLayer, useMap, Marker } from 'react-leaflet';
 import { MapFeatureCircles } from './MapFeatureCircles';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -23,6 +21,9 @@ import './MapOverrides.css';
 import './sarabun-font.css';
 import WaterQualityDashboard from './WaterQualityDashboard';
 
+// นำเข้า Modal กราฟคลื่นทะเล
+import WaveGraphModal from './WaveGraphModal';
+
 const BASEMAPS = [
   { id: 'osm',        label: 'OpenStreetMap',  url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' },
   { id: 'carto-dark',  label: 'Dark',           url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png' },
@@ -34,9 +35,14 @@ const BASEMAPS = [
 
 const LONGDO_WEATHER_KEY = process.env.REACT_APP_LONGDO_WEATHER_KEY || '';
 const RAIN_LAYER_URL = `https://weather.longdo.com/rain/api/v1/layer/latest/{z}/{x}/{y}.png?key=${LONGDO_WEATHER_KEY}`;
-
-// กำหนด URL ของ API ลมจริง (ตั้งค่าได้ในไฟล์ .env)
 const WIND_API_URL = process.env.REACT_APP_WIND_API_URL || 'http://localhost:5000/api/wind';
+
+const waveIcon = new L.Icon({
+  iconUrl: process.env.PUBLIC_URL + '/assets/wave.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  popupAnchor: [0, -16]
+});
 
 function getFeatureViewTarget(feature) {
   if (!feature) return null;
@@ -100,7 +106,12 @@ function App() {
   const [rainSpeed, setRainSpeed] = useState(1);
   const [windEnabled, setWindEnabled] = useState(false);
   const [windData, setWindData] = useState(null);
+  
   const [selectedFeature, setSelectedFeature] = useState(null);
+  
+  // State สำหรับจัดการหน้าต่างกราฟคลื่น
+  const [waveModalFeature, setWaveModalFeature] = useState(null);
+
   const [basemapId, setBasemapId] = useState(() => localStorage.getItem('basemap') || 'osm');
   const [basemapOpen, setBasemapOpen] = useState(false);
   const basemapManualRef = useRef(false);
@@ -190,8 +201,6 @@ function App() {
     return () => clearTimeout(timer);
   }, [dashboardCollapsed, sidebarCollapsed]);
 
-  const selectedBasemap = BASEMAPS.find(b => b.id === basemapId) || BASEMAPS[0];
-
   useEffect(() => {
     if (!searchValue) setFilteredPoints(points);
     else setFilteredPoints(points.filter(f => f.properties?.location?.toLowerCase().includes(searchValue.toLowerCase())));
@@ -199,27 +208,56 @@ function App() {
 
   useEffect(() => {
     const flatLayers = layers.flatMap(cat => cat.items || [cat]);
-    const selectedLayers = flatLayers.filter(l => selectedLayerIds.includes(l.id) && l.kind !== 'line');
+    const selectedWFSLayers = flatLayers.filter(l => selectedLayerIds.includes(l.id) && l.kind !== 'line' && l.id !== 'swan_station');
+    const isSwanSelected = selectedLayerIds.includes('swan_station');
 
-    if (!selectedLayers.length) {
+    if (!selectedWFSLayers.length && !isSwanSelected) {
       setPoints([]);
       mapRef.current?.closePopup();
       return;
     }
 
-    let allFeatures = [];
-    let fetchCount = 0;
-
-    selectedLayers.forEach(layer => {
+    const wfsPromises = selectedWFSLayers.map(layer => {
       const wfsUrl = `https://map.surveywms.com/geoserver/ChalatatSongkhla/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ChalatatSongkhla:${encodeURIComponent(layer.name)}&outputFormat=application/json&maxFeatures=100`;
-      fetch(wfsUrl)
+      return fetch(wfsUrl).then(res => res.json()).then(data => data.features || []).catch(() => []);
+    });
+
+    let swanPromise = Promise.resolve([]);
+    if (isSwanSelected) {
+      swanPromise = fetch('https://api-v3.thaiwater.net/api/v1/thaiwater30/public/swan_station')
         .then(res => res.json())
-        .then(data => { if (data.features) allFeatures = [...allFeatures, ...data.features]; })
-        .catch(err => console.error(err))
-        .finally(() => {
-          fetchCount++;
-          if (fetchCount === selectedLayers.length) setPoints(allFeatures);
+        .then(data => {
+          const arr = Array.isArray(data) ? data : (data?.data || data?.swan_station || []);
+          return arr.map((item, idx) => {
+            const lat = parseFloat(item?.swan_lat || item?.station?.lat || item?.lat || item?.latitude);
+            const lng = parseFloat(item?.swan_long || item?.station?.long || item?.station?.lng || item?.long || item?.longitude);
+            const name = item?.station?.station_name?.th || item?.station_name || `สถานีคลื่นทะเล ${idx+1}`;
+            
+            if (isNaN(lat) || isNaN(lng)) return null;
+
+            return {
+              type: 'Feature',
+              id: `swan-${item?.id || idx}`,
+              geometry: { type: 'Point', coordinates: [lng, lat] },
+              properties: {
+                ...item,
+                location: name,
+                _source: 'thaiwater',
+                'ความสูงคลื่น (ม.)': item?.wave_height || '-',
+                'ทิศทางคลื่น': item?.wave_direction || '-',
+                'วันที่อัปเดต': item?.date || item?.time || '-'
+              }
+            };
+          }).filter(f => f !== null);
+        }).catch(err => {
+          console.error('Error fetching swan_station:', err);
+          return [];
         });
+    }
+
+    Promise.all([...wfsPromises, swanPromise]).then(results => {
+      const mergedFeatures = results.flat();
+      setPoints(mergedFeatures);
     });
   }, [selectedLayerIds]);
 
@@ -256,13 +294,9 @@ function App() {
     ? `https://weather.longdo.com${rainFrames[rainFrameIdx].path}/{z}/{x}/{y}.png?key=${LONGDO_WEATHER_KEY}`
     : RAIN_LAYER_URL;
 
-  // โหลดข้อมูลลมจริงจาก API เมื่อเปิดชั้นลม
   useEffect(() => {
     if (!windEnabled) return;
-    
-    // ตั้งเวลา Fetch ข้อมูลใหม่หากไม่ได้ดึงนานแล้ว (ป้องกัน Cache ค้าง)
     let cancelled = false;
-    
     const fetchWindData = async () => {
       try {
         const res = await fetch(WIND_API_URL, { cache: 'no-store' });
@@ -271,11 +305,9 @@ function App() {
         if (!cancelled) setWindData(data);
       } catch (err) {
         console.error('Fetch real-time wind data error:', err);
-        // ไม่มี fallback ไปใช้ข้อมูลตัวอย่าง — ถ้า API ใช้ไม่ได้ ให้ไม่แสดงชั้นลม
         if (!cancelled) setWindData(null);
       }
     };
-
     fetchWindData();
     return () => { cancelled = true; };
   }, [windEnabled]);
@@ -308,8 +340,22 @@ function App() {
     setDashboardTab('table');
   }, [selectedFeature]);
 
+  const wavePoints = filteredPoints.filter(f => f.properties?._source === 'thaiwater');
+  const otherPoints = filteredPoints.filter(f => f.properties?._source !== 'thaiwater');
+  
+  const selectedBasemap = BASEMAPS.find(b => b.id === basemapId) || BASEMAPS[0];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', background: 'var(--c-bg-app)' }}>
+      
+      {/* แทรก Modal กราฟคลื่นทะเลเมื่อมีการกดเลือกจุดคลื่น */}
+      {waveModalFeature && (
+        <WaveGraphModal 
+          feature={waveModalFeature} 
+          onClose={() => setWaveModalFeature(null)} 
+        />
+      )}
+
       <header style={{
         height: '56px', minHeight: '56px',
         background: 'linear-gradient(135deg, var(--c-header-start) 0%, var(--c-header-end) 100%)',
@@ -355,10 +401,6 @@ function App() {
                 display: 'flex', alignItems: 'center', gap: 4,
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="7" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-                <path d="M2 12c0-2.5 2.2-4 5-4s5 1.5 5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
               เข้าสู่ระบบ
             </button>
           )}
@@ -370,18 +412,8 @@ function App() {
               width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', color: 'var(--c-accent-light)', transition: 'all 0.2s',
             }}
-            aria-label={theme === 'dark' ? 'สลับเป็นธีมสว่าง' : 'สลับเป็นธีมมืด'}
           >
-            {theme === 'dark' ? (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <circle cx="9" cy="9" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                <path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.3 3.3l1.4 1.4M13.3 13.3l1.4 1.4M3.3 14.7l1.4-1.4M13.3 4.7l1.4-1.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M15 10.5A6.5 6.5 0 017.5 3a6.5 6.5 0 107.5 7.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            )}
+            {theme === 'dark' ? '☀️' : '🌙'}
           </button>
         </div>
       </header>
@@ -426,7 +458,6 @@ function App() {
                   onClick={() => setBasemapOpen(v => !v)}
                   style={{ background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, color: 'var(--c-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: 'var(--c-shadow)', fontFamily: 'inherit' }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" fill="none"/><rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" fill="none"/><rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" fill="none"/><rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>
                   {selectedBasemap.label}
                 </button>
                 {basemapOpen && (
@@ -435,9 +466,7 @@ function App() {
                       <div
                         key={b.id}
                         onClick={() => { basemapManualRef.current = true; setBasemapId(b.id); setBasemapOpen(false); }}
-                        style={{ padding: '8px 12px', fontSize: 12, fontWeight: b.id === basemapId ? 700 : 500, color: b.id === basemapId ? 'var(--c-accent-light)' : 'var(--c-text)', background: b.id === basemapId ? 'var(--c-accent-bg)' : 'transparent', borderRadius: 6, cursor: 'pointer', transition: 'background 0.15s' }}
-                        onMouseOver={e => { if (b.id !== basemapId) e.currentTarget.style.background = 'var(--c-bg-hover)'; }}
-                        onMouseOut={e => { if (b.id !== basemapId) e.currentTarget.style.background = 'transparent'; }}
+                        style={{ padding: '8px 12px', fontSize: 12, fontWeight: b.id === basemapId ? 700 : 500, color: b.id === basemapId ? 'var(--c-accent-light)' : 'var(--c-text)', background: b.id === basemapId ? 'var(--c-accent-bg)' : 'transparent', borderRadius: 6, cursor: 'pointer' }}
                       >
                         {b.label}
                       </div>
@@ -446,7 +475,7 @@ function App() {
                 )}
               </div>
               
-              {layers.flatMap(cat => cat.items || [cat]).filter(l => selectedLayerIds.includes(l.id)).map(layer => (
+              {layers.flatMap(cat => cat.items || [cat]).filter(l => selectedLayerIds.includes(l.id) && l.id !== 'swan_station').map(layer => (
                 <WMSTileLayer key={layer.id} url="https://map.surveywms.com/geoserver/ChalatatSongkhla/wms" layers={`ChalatatSongkhla:${layer.name}`} format="image/png" transparent={true} version="1.1.1" maxZoom={24} pane={layer.id === 'waterway' ? 'waterwayPane' : 'livestockPane'} />
               ))}
 
@@ -464,7 +493,32 @@ function App() {
 
               {windEnabled && windData && <WindLayer windData={windData} pane="windPane" />}
 
-              <MapFeatureCircles features={filteredPoints} onViewDetail={feature => { setSelectedFeature(feature); setDashboardCollapsed(false); mapRef.current?.closePopup(); handleZoomToFeature(feature); }} />
+              <MapFeatureCircles 
+                features={otherPoints} 
+                onViewDetail={feature => { 
+                  setSelectedFeature(feature); 
+                  setDashboardCollapsed(false); 
+                  mapRef.current?.closePopup(); 
+                  handleZoomToFeature(feature); 
+                }} 
+              />
+
+              {/* วาดจุดข้อมูลคลื่นทะเล */}
+              {wavePoints.map(feature => (
+                <Marker
+                  key={feature.id}
+                  position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
+                  icon={waveIcon}
+                  eventHandlers={{
+                    click: () => {
+                      // สั่งเปิดหน้าต่างกราฟ แทนที่จะไปแสดงที่ Sidebar
+                      setWaveModalFeature(feature);
+                      handleZoomToFeature(feature);
+                    }
+                  }}
+                />
+              ))}
+
             </MapContainer>
           </div>
         </section>
@@ -473,7 +527,6 @@ function App() {
           <button
             onClick={() => setDashboardCollapsed(v => !v)}
             style={{ width: 24, minWidth: 24, height: '100%', background: 'var(--c-bg-secondary)', border: 'none', borderLeft: '1px solid var(--c-border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text-secondary)', fontSize: 14, padding: 0, transition: 'all 0.25s ease', flexShrink: 0 }}
-            aria-label={dashboardCollapsed ? 'ขยายแดชบอร์ด' : 'ย่อแดชบอร์ด'}
           >
             {dashboardCollapsed ? '‹' : '›'}
           </button>
