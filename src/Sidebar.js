@@ -533,7 +533,7 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
         <div
           className={`layer-item${windEnabled ? ' active' : ''}`}
           onClick={() => setWindEnabled(v => !v)}
-          title="ลมเคลื่อนไหว (ข้อมูลตัวอย่าง)"
+          title="ลมและทิศทางลม"
         >
           <div className="layer-icon-wrapper">
             <WindIcon />
