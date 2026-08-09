@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+# ข้ามโฟลเดอร์ server และข้อมูลข้างในทั้งหมด
+server/
+
 # testing
 /coverage
 
