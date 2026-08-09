@@ -540,7 +540,7 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
           </div>
           {!collapsed && (
             <>
-              <span className="layer-name">ลมเคลื่อนไหว (ตัวอย่าง)</span>
+              <span className="layer-name">ลมและทิศทางลม</span>
               <div className="layer-check">
                 <CheckIcon />
               </div>
