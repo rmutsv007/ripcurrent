@@ -1,9 +1,12 @@
 /**
  * App.js — คอมโพเนนต์หลักของแอปพลิเคชัน
+ * ทำหน้าที่จัดวาง Layout ทั้งหมด: Header, Sidebar, Map, Dashboard
+ * รวมถึงจัดการ State หลัก เช่น ธีม, แผนที่ฐาน, ข้อมูลจุด, และ Layer ที่เลือก
  */
 
 import React, { useRef, useState, useEffect } from 'react';
-import { MapContainer, TileLayer, WMSTileLayer, useMap, Marker } from 'react-leaflet';
+// เพิ่ม Tooltip เข้ามาสำหรับการทำ Hover แสดงข้อความ
+import { MapContainer, TileLayer, WMSTileLayer, useMap, Marker, Tooltip } from 'react-leaflet';
 import { MapFeatureCircles } from './MapFeatureCircles';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -516,7 +519,14 @@ function App() {
                       handleZoomToFeature(feature);
                     }
                   }}
-                />
+                >
+                  {/* เพิ่ม Tooltip ให้แสดงตอนเอาเมาส์ชี้ที่จุดคลื่นทะเล */}
+                  <Tooltip direction="top" offset={[0, -16]} opacity={1}>
+                    <div style={{ fontFamily: 'Sarabun-Medium, sans-serif', fontSize: '13px' }}>
+                      <strong>{feature.properties.location || 'สถานีคลื่นทะเล'}</strong>
+                    </div>
+                  </Tooltip>
+                </Marker>
               ))}
 
             </MapContainer>
