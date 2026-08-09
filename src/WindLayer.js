@@ -33,7 +33,7 @@ function WindLayer({ windData, pane = 'windPane' }) {
       },
       data: windData,
       maxVelocity: 15,
-      velocityScale: 0.01, // ปรับความยาว/ความเร็วเส้น particle
+      velocityScale: 0.001, // ปรับความยาว/ความเร็วเส้น particle
       
       // --- ส่วนที่เพิ่มเข้ามาใหม่เพื่อลดปริมาณลม ---
       particleMultiplier: 0.001, // ปรับลดปริมาณเส้นลม (ค่าน้อย = ลมน้อยลง ลองเปลี่ยนเป็น 0.002 หรือ 0.0005 ได้ครับ)
