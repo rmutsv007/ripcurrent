@@ -67,6 +67,17 @@ const WindIcon = () => (
 );
 
 /**
+ * InfoIcon — ไอคอนตัว "i" สำหรับปุ่มข้อมูลเพิ่มเติมของหมวดคุณภาพน้ำ
+ */
+const InfoIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <circle cx="6.5" cy="6.5" r="6" stroke="currentColor" strokeWidth="1.2" fill="none" />
+    <circle cx="6.5" cy="3.9" r="0.75" fill="currentColor" />
+    <path d="M6.5 5.8V9.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+
+/**
  * Sidebar — คอมโพเนนต์แถบเมนูเลือกชั้นข้อมูล
  * @param {Function} onLayerChange - callback เมื่อเปลี่ยนชั้นข้อมูลที่เลือก (ส่ง array ของ IDs)
  * @param {boolean} collapsed - สถานะย่อ/ขยาย
@@ -131,6 +142,29 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
   // State: เก็บ ID ของ layer ที่ถูกเลือก (เริ่มต้นเลือกตัวแรก)
   const [selectedLayerIds, setSelectedLayerIds] = useState(flatLayers.length > 0 ? [flatLayers[0].id] : []);
 
+  // === State: popup ข้อมูลหมวด "คุณภาพน้ำ" ===
+  // showWaterInfoPopup ควบคุมว่ากำลังแสดง popup อยู่หรือไม่
+  const [showWaterInfoPopup, setShowWaterInfoPopup] = useState(false);
+  // waterInfoShownRef ใช้จำว่าเคยแสดง popup ไปแล้วหรือยัง (ทั้งจากการกดปุ่ม i หรือกดดูข้อมูล)
+  // ใช้ ref เพราะไม่ต้อง trigger re-render และค่าคงอยู่จนกว่าจะรีเฟรชหน้าเว็บ
+  const waterInfoShownRef = React.useRef(false);
+
+  /**
+   * openWaterInfoPopup — เปิด popup ข้อมูลคุณภาพน้ำ และบันทึกว่าแสดงไปแล้ว
+   */
+  const openWaterInfoPopup = () => {
+    setShowWaterInfoPopup(true);
+    waterInfoShownRef.current = true;
+  };
+
+  // === Effect: แสดง popup ข้อมูลคุณภาพน้ำอัตโนมัติเมื่อเริ่มเปิดเว็บ (ครั้งเดียว ต้องรีเฟรชถึงจะขึ้นอีก) ===
+  React.useEffect(() => {
+    if (!waterInfoShownRef.current) {
+      openWaterInfoPopup();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // === Effect: แจ้ง parent component เมื่อ layer ที่เลือกเปลี่ยน ===
   React.useEffect(() => {
     if (onLayerChange) onLayerChange(selectedLayerIds);
@@ -145,6 +179,11 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
     setSelectedLayerIds(prevIds => {
       // 1. ถ้าชั้นข้อมูลที่คลิกอยู่ในหมวด "คุณภาพน้ำ" (ให้เลือกได้แค่อันเดียว)
       if (categoryName === 'คุณภาพน้ำ') {
+        // แสดง popup ข้อมูลครั้งแรกที่กดดูข้อมูลในหมวดนี้ (ถ้ายังไม่เคยแสดงมาก่อน)
+        if (!waterInfoShownRef.current) {
+          openWaterInfoPopup();
+        }
+
         // หา ID ทั้งหมดที่อยู่ในหมวดคุณภาพน้ำ
         const waterQualityCategory = layers.find(cat => cat.category === 'คุณภาพน้ำ');
         const waterQualityIds = waterQualityCategory ? waterQualityCategory.items.map(item => item.id) : [];
@@ -207,6 +246,46 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
   return (
     // คอนเทนเนอร์ sidebar — เพิ่ม class 'collapsed' เมื่อย่อ
     <div className={`sidebar-container${collapsed ? ' collapsed' : ''}`}>
+      {/* ==================== Popup ข้อมูลหมวด "คุณภาพน้ำ" ==================== */}
+      {showWaterInfoPopup && (
+        <div
+          onClick={() => setShowWaterInfoPopup(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'relative', maxWidth: '90vw', maxHeight: '90vh',
+              background: 'var(--c-bg-primary)', borderRadius: 12, padding: 8,
+              boxShadow: 'var(--c-shadow-lg)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowWaterInfoPopup(false)}
+              aria-label="ปิดหน้าต่างข้อมูล"
+              style={{
+                position: 'absolute', top: -12, right: -12, width: 28, height: 28,
+                borderRadius: '50%', border: 'none', background: 'var(--c-bg-primary)',
+                boxShadow: 'var(--c-shadow)', cursor: 'pointer', fontSize: 16,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--c-text)', lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+            <img
+              src="/assets/popup.png"
+              alt="ข้อมูลคุณภาพน้ำ"
+              style={{ display: 'block', maxWidth: '85vw', maxHeight: '85vh', borderRadius: 8, objectFit: 'contain' }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* ปุ่ม Toggle ย่อ/ขยาย Sidebar */}
       <button
         className="sidebar-toggle-btn"
@@ -230,10 +309,26 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
             <React.Fragment key={index}>
               {/* ชื่อหัวข้อใหญ่ */}
               {!collapsed && (
-                <div className="sidebar-subheader" style={{ marginTop: '12px', paddingBottom: '4px' }}>
-                  <p className="sidebar-header-title" style={{ fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+                <div className="sidebar-subheader" style={{ marginTop: '12px', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <p className="sidebar-header-title" style={{ fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 600, margin: 0 }}>
                     {cat.category}
                   </p>
+                  {cat.category === 'คุณภาพน้ำ' && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); openWaterInfoPopup(); }}
+                      title="ข้อมูลเพิ่มเติมเกี่ยวกับคุณภาพน้ำ"
+                      aria-label="ข้อมูลเพิ่มเติมเกี่ยวกับคุณภาพน้ำ"
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: 16, height: 16, borderRadius: '50%',
+                        border: '1px solid var(--c-text-secondary)', background: 'transparent',
+                        color: 'var(--c-text-secondary)', cursor: 'pointer', padding: 0, flexShrink: 0,
+                      }}
+                    >
+                      <InfoIcon />
+                    </button>
+                  )}
                 </div>
               )}
               {/* ข้อมูลย่อยในหมวดหมู่ */}

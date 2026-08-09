@@ -18,11 +18,11 @@ const layers = [
     category: 'คุณภาพน้ำ',
     items: [
       // อย่าลืมสร้าง Layer เหล่านี้ใน GeoServer ด้วยนะครับ
-      { id: '01WaterQuality_26052026', name: '01WaterQuality_26052026', label: 'วันที่ 26 พ.ค. 2026', kind: 'point' },
-      { id: '02WaterQuality_11062026', name: '02WaterQuality_11062026', label: 'วันที่ 11 มิ.ย. 2026', kind: 'point' },
-      { id: '03WaterQuality_27062026', name: '03WaterQuality_27062026', label: 'วันที่ 27 มิ.ย. 2026', kind: 'point' },
-      { id: '04WaterQuality_12072026', name: '04WaterQuality_12072026', label: 'วันที่ 12 ก.ค. 2026', kind: 'point' },
-      { id: '05WaterQuality_23072026', name: '05WaterQuality_23072026', label: 'วันที่ 23 ก.ค. 2026', kind: 'point' },
+      { id: '01WaterQuality_26052026', name: '01WaterQuality_26052026', label: 'วันที่ 26 พ.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+      { id: '02WaterQuality_11062026', name: '02WaterQuality_11062026', label: 'วันที่ 11 มิ.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+      { id: '03WaterQuality_27062026', name: '03WaterQuality_27062026', label: 'วันที่ 27 มิ.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+      { id: '04WaterQuality_12072026', name: '04WaterQuality_12072026', label: 'วันที่ 12 ก.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+      { id: '05WaterQuality_23072026', name: '05WaterQuality_23072026', label: 'วันที่ 23 ก.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
     ]
   }
 ];
