@@ -6,16 +6,16 @@ import React from 'react';
 const BacteriaLegend = () => {
   // ดึงช่วงข้อมูลและสีมาจากไฟล์ SLD
   const legendData = [
-    { label: '<= 110', color: '#1a9641' },
-    { label: '110 - 220', color: '#58b453' },
-    { label: '220 - 330', color: '#96d265' },
-    { label: '330 - 440', color: '#c4e687' },
-    { label: '440 - 550', color: '#ebf7ad' },
-    { label: '550 - 660', color: '#ffedab' },
-    { label: '660 - 770', color: '#fec981' },
-    { label: '770 - 880', color: '#f99d59' },
-    { label: '880 - 990', color: '#e85b3b' },
-    { label: '> 990', color: '#d7191c' },
+    { label: '<= 100', color: '#1a9641' },
+    { label: '100 - 200', color: '#58b453' },
+    { label: '200 - 300', color: '#96d265' },
+    { label: '300 - 400', color: '#c4e687' },
+    { label: '400 - 500', color: '#ebf7ad' },
+    { label: '500 - 600', color: '#ffedab' },
+    { label: '600 - 700', color: '#fec981' },
+    { label: '700 - 800', color: '#f99d59' },
+    { label: '800 - 900', color: '#e85b3b' },
+    { label: '> 900', color: '#d7191c' },
   ];
 
   return (
