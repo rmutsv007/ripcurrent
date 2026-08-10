@@ -8,6 +8,8 @@ import { MapFeatureCircles } from './MapFeatureCircles';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+import BacteriaLegend from './BacteriaLegend';
+
 import DashboardTable from './DashboardTable';
 import FeatureDetail from './FeatureDetail';
 import Sidebar from './Sidebar';
@@ -379,6 +381,11 @@ function App() {
   });
   // ========================================================
   
+  // === สร้างเงื่อนไขเช็คว่ามีการเปิดชั้นข้อมูล "แบคทีเรีย" อยู่หรือไม่ ===
+  // เช็คว่ามี ID ไหนใน selectedOrthoIds หรือ selectedLayerIds ที่มีคำว่า 'RWaterQuality_' อยู่บ้าง
+  const isBacteriaLayerActive = selectedOrthoIds.some(id => id.includes('RWaterQuality_')) || 
+                                selectedLayerIds.some(id => id.includes('RWaterQuality_'));
+  
   const selectedBasemap = BASEMAPS.find(b => b.id === basemapId) || BASEMAPS[0];
 
   return (
@@ -559,6 +566,9 @@ function App() {
                   handleZoomToFeature(feature); 
                 }} 
               />
+
+              {/* แทรก Legend แบคทีเรียตรงนี้ (จะแสดงเมื่อเงื่อนไขเป็นจริง) */}
+              {isBacteriaLayerActive && <BacteriaLegend />}
 
               {/* ข้อมูลจุดคลื่นทะเล (ใช้ไอคอนรูปคลื่น) */}
               {wavePoints.map(feature => (
