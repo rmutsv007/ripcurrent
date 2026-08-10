@@ -142,10 +142,10 @@ function App() {
 
 // === ระบบนับผู้เข้าชมแบบออนไลน์ (Global Counter - นับทุกครั้งที่โหลดหน้า) ===
   useEffect(() => {
-    // เรียก API แบบ /up เพื่อบวกยอดวิวทุกครั้งที่เปิดหรือรีเฟรชหน้าเว็บ
-    const apiUrl = 'https://api.counterapi.dev/v1/hydrogis_chalatat_v1/page_views/up';
+    // เพิ่มรหัสเวลาต่อท้าย (Cache Buster) เพื่อบังคับให้เบราว์เซอร์มองว่าเป็นลิงก์ใหม่เสมอ
+    const timestamp = new Date().getTime();
+    const apiUrl = `https://api.counterapi.dev/v1/hydrogis_chalatat_v1/page_views/up?t=${timestamp}`;
 
-    // +++ เพิ่ม { cache: 'no-store' } ตรงนี้ครับ +++
     fetch(apiUrl, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
@@ -156,7 +156,7 @@ function App() {
       })
       .catch(err => {
         console.error('Counter API Error:', err);
-        // ถ้า API มีปัญหา หรือเน็ตผู้ใช้หลุด ให้แสดงค่าเริ่มต้นที่ 819 ไปก่อน
+        // ถ้า API มีปัญหา หรือโดน Adblock บล็อก ให้แสดงค่า 819 
         setVisitorCount(819); 
       });
   }, []);
