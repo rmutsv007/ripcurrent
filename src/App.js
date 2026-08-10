@@ -140,24 +140,29 @@ function App() {
   const mapRef = useRef();
   const highlightMarkerRef = useRef(null);
 
-// === ระบบนับผู้เข้าชมแบบออนไลน์ (Global Counter - นับทุกครั้งที่โหลดหน้า) ===
+// === ระบบนับผู้เข้าชมแบบออนไลน์ (Firebase Realtime Database) ===
   useEffect(() => {
-    // เพิ่มรหัสเวลาต่อท้าย (Cache Buster) เพื่อบังคับให้เบราว์เซอร์มองว่าเป็นลิงก์ใหม่เสมอ
-    const timestamp = new Date().getTime();
-    const apiUrl = `https://api.counterapi.dev/v1/hydrogis_chalatat_v1/page_views/up?t=${timestamp}`;
+    // ลิงก์ Firebase ของคุณ พร้อมเติม /visitorCount.json ต่อท้าย
+    const firebaseUrl = 'https://hydrogi-default-rtdb.asia-southeast1.firebasedatabase.app/visitorCount.json';
 
-    fetch(apiUrl, { cache: 'no-store' })
+    fetch(firebaseUrl)
       .then(res => res.json())
-      .then(data => {
-        // API จะเริ่มนับจาก 1 เราจึงบวก 818 เข้าไป เพื่อให้แสดงค่าเริ่มต้นที่ 819
-        const currentCount = (data.count || 1) + 818;
+      .then(currentCount => {
+        // ถ้าฐานข้อมูลยังว่างเปล่า (null) ให้เริ่มที่ 819 ถ้ามีเลขแล้วให้บวกเพิ่มทีละ 1
+        const newCount = currentCount === null ? 819 : currentCount + 1;
         
-        setVisitorCount(currentCount);
+        setVisitorCount(newCount);
+
+        // ส่งตัวเลขที่บวกแล้ว กลับไปบันทึกทับใน Firebase
+        fetch(firebaseUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCount)
+        });
       })
       .catch(err => {
-        console.error('Counter API Error:', err);
-        // ถ้า API มีปัญหา หรือโดน Adblock บล็อก ให้แสดงค่า 819 
-        setVisitorCount(819); 
+        console.error('Database Error:', err);
+        setVisitorCount(819); // ถ้าเน็ตหลุด ให้แสดง 819 ป้องกันเลขหาย
       });
   }, []);
   // ============================================
