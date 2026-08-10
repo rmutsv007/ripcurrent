@@ -1,11 +1,8 @@
 /**
  * App.js — คอมโพเนนต์หลักของแอปพลิเคชัน
- * ทำหน้าที่จัดวาง Layout ทั้งหมด: Header, Sidebar, Map, Dashboard
- * รวมถึงจัดการ State หลัก เช่น ธีม, แผนที่ฐาน, ข้อมูลจุด, และ Layer ที่เลือก
  */
 
 import React, { useRef, useState, useEffect } from 'react';
-// เพิ่ม Tooltip เข้ามาสำหรับการทำ Hover แสดงข้อความ
 import { MapContainer, TileLayer, WMSTileLayer, useMap, Marker, Tooltip } from 'react-leaflet';
 import { MapFeatureCircles } from './MapFeatureCircles';
 import L from 'leaflet';
@@ -111,8 +108,6 @@ function App() {
   const [windData, setWindData] = useState(null);
   
   const [selectedFeature, setSelectedFeature] = useState(null);
-  
-  // State สำหรับจัดการหน้าต่างกราฟคลื่น
   const [waveModalFeature, setWaveModalFeature] = useState(null);
 
   const [basemapId, setBasemapId] = useState(() => localStorage.getItem('basemap') || 'osm');
@@ -125,9 +120,30 @@ function App() {
   const [authUser, setAuthUser] = useState(() => localStorage.getItem('authUser') || null);
   const [showLogin, setShowLogin] = useState(false);
   
+  // State เก็บจำนวนผู้เข้าชม
+  const [visitorCount, setVisitorCount] = useState(0);
+
   const toggleBtnRef = useRef();
   const mapRef = useRef();
   const highlightMarkerRef = useRef(null);
+
+  // === ระบบนับผู้เข้าชมแบบจำลอง (ทำงานตอนเปิดเว็บ 1 ครั้ง) ===
+  useEffect(() => {
+    let savedCount = localStorage.getItem('hydrogis_visitor_count');
+    // สุ่มตัวเลข 0 ถึง 5
+    const randomIncrement = Math.floor(Math.random() * 6); 
+
+    let newCount;
+    if (!savedCount) {
+      newCount = 819 + randomIncrement;
+    } else {
+      newCount = parseInt(savedCount, 10) + randomIncrement;
+    }
+
+    localStorage.setItem('hydrogis_visitor_count', newCount);
+    setVisitorCount(newCount);
+  }, []);
+  // ========================================================
 
   const showHighlight = (latLng) => {
     const map = mapRef.current;
@@ -343,15 +359,31 @@ function App() {
     setDashboardTab('table');
   }, [selectedFeature]);
 
+  // === แยกชุดข้อมูลสำหรับแสดงในแต่ละส่วน ===
   const wavePoints = filteredPoints.filter(f => f.properties?._source === 'thaiwater');
   const otherPoints = filteredPoints.filter(f => f.properties?._source !== 'thaiwater');
+  
+  // +++ การกรองเฉพาะข้อมูล "คุณภาพน้ำ" สำหรับส่งให้ DashboardTable +++
+  const waterQualityCategory = layers.find(cat => cat.category === 'คุณภาพน้ำ');
+  const waterQualityNames = waterQualityCategory ? waterQualityCategory.items.map(item => item.name) : [];
+
+  const tablePoints = filteredPoints.filter(feature => {
+    // ตัดคลื่นทะเลทิ้งก่อนเสมอ
+    if (feature.properties?._source === 'thaiwater') return false;
+    
+    // ดึงเฉพาะชื่อ Layer ออกมาจาก Feature ID ของ GeoServer (เช่น WaterQuality_13032026.1 -> WaterQuality_13032026)
+    const featureLayerName = feature.id ? feature.id.split('.')[0] : '';
+    
+    // รีเทิร์นเฉพาะข้อมูลที่ชื่อ Layer ตรงกับหมวดคุณภาพน้ำ
+    return waterQualityNames.includes(featureLayerName);
+  });
+  // ========================================================
   
   const selectedBasemap = BASEMAPS.find(b => b.id === basemapId) || BASEMAPS[0];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', background: 'var(--c-bg-app)' }}>
       
-      {/* แทรก Modal กราฟคลื่นทะเลเมื่อมีการกดเลือกจุดคลื่น */}
       {waveModalFeature && (
         <WaveGraphModal 
           feature={waveModalFeature} 
@@ -376,7 +408,27 @@ function App() {
         }}>
           HydroGIS ชลาทัศน์ : ศูนย์แผนที่สำรวจและคุณภาพน้ำ
         </h1>
-        <div style={{ position: 'absolute', right: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+        
+        {/* === ปรับแต่งเมนูด้านขวา (เพิ่มช่องแสดงผู้เข้าชม) === */}
+        <div style={{ position: 'absolute', right: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+          
+          {/* Badge แสดงจำนวนผู้เข้าชม */}
+          <div 
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'var(--c-bg-subtle)', border: '1px solid var(--c-border)',
+              padding: '6px 12px', borderRadius: '20px',
+              fontSize: '12px', color: 'var(--c-text-secondary)',
+              fontFamily: 'Sarabun-Medium, sans-serif', fontWeight: 600,
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
+              cursor: 'default'
+            }} 
+            title="จำนวนการเข้าชมระบบ"
+          >
+            <span style={{ fontSize: '14px' }}>👁️</span>
+            {visitorCount.toLocaleString()}
+          </div>
+
           {authToken ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Sarabun-Medium' }}>{authUser}</span>
@@ -407,6 +459,7 @@ function App() {
               เข้าสู่ระบบ
             </button>
           )}
+          
           <button
             ref={toggleBtnRef}
             onClick={toggleTheme}
@@ -496,6 +549,7 @@ function App() {
 
               {windEnabled && windData && <WindLayer windData={windData} pane="windPane" />}
 
+              {/* ข้อมูลจุดทั่วไป (ใช้วงกลม) */}
               <MapFeatureCircles 
                 features={otherPoints} 
                 onViewDetail={feature => { 
@@ -506,7 +560,7 @@ function App() {
                 }} 
               />
 
-              {/* วาดจุดข้อมูลคลื่นทะเล */}
+              {/* ข้อมูลจุดคลื่นทะเล (ใช้ไอคอนรูปคลื่น) */}
               {wavePoints.map(feature => (
                 <Marker
                   key={feature.id}
@@ -514,13 +568,11 @@ function App() {
                   icon={waveIcon}
                   eventHandlers={{
                     click: () => {
-                      // สั่งเปิดหน้าต่างกราฟ แทนที่จะไปแสดงที่ Sidebar
                       setWaveModalFeature(feature);
                       handleZoomToFeature(feature);
                     }
                   }}
                 >
-                  {/* เพิ่ม Tooltip ให้แสดงตอนเอาเมาส์ชี้ที่จุดคลื่นทะเล */}
                   <Tooltip direction="top" offset={[0, -16]} opacity={1}>
                     <div style={{ fontFamily: 'Sarabun-Medium, sans-serif', fontSize: '13px' }}>
                       <strong>{feature.properties.location || 'สถานีคลื่นทะเล'}</strong>
@@ -563,10 +615,12 @@ function App() {
                   selectedFeature ? (
                     <FeatureDetail feature={selectedFeature} onBack={() => { setSelectedFeature(null); hideHighlight(); }} onZoomToFeature={handleZoomToFeature} authToken={authToken} />
                   ) : (
-                    <DashboardTable points={filteredPoints} onSelectFeature={feature => { setSelectedFeature(feature); handleZoomToFeature(feature); }} />
+                    // === ส่ง tablePoints (เฉพาะคุณภาพน้ำ) ให้ตารางใช้งาน ===
+                    <DashboardTable points={tablePoints} onSelectFeature={feature => { setSelectedFeature(feature); handleZoomToFeature(feature); }} />
                   )
                 ) : (
-                  <WaterQualityDashboard points={filteredPoints} />
+                  // === ส่ง tablePoints (เฉพาะคุณภาพน้ำ) ให้กราฟใช้งาน ===
+                  <WaterQualityDashboard points={tablePoints} />
                 )}
               </div>
             </div>

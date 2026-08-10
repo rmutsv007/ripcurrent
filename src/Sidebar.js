@@ -1,7 +1,5 @@
 /**
  * Sidebar.js — คอมโพเนนต์แถบเมนูด้านซ้าย
- * แสดงรายการชั้นข้อมูล (Layer) ที่ผู้ใช้สามารถเลือกเปิด/ปิดได้
- * รองรับการย่อ/ขยาย (collapse/expand)
  */
 
 import React, { useState } from 'react';
@@ -38,13 +36,6 @@ const WindIcon = () => (
     <path d="M2.5 6.5h9a2 2 0 1 0-2-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
     <path d="M2.5 10.5h11.5a2.2 2.2 0 1 1-2.2 2.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
     <path d="M2.5 14.5h7a1.7 1.7 0 1 0-1.7-1.7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-  </svg>
-);
-
-const WaveIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <path d="M2 11.5 Q 6 6.5, 10 11.5 T 18 11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-    <path d="M2 15.5 Q 6 10.5, 10 15.5 T 18 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
   </svg>
 );
 
@@ -243,28 +234,6 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
                     >
                       <InfoIcon />
                     </button>
-                  )}
-                </div>
-              )}
-
-              {/* แทรก API คลื่นทะเลเข้าไปในหมวด "ข้อมูลพื้นฐาน" แบบเนียนๆ */}
-              {cat.category === 'ข้อมูลพื้นฐาน' && (
-                <div
-                  className={`layer-item${selectedLayerIds.includes('swan_station') ? ' active' : ''}`}
-                  onClick={() => handleLayerToggle({ id: 'swan_station' }, 'ข้อมูลพื้นฐาน')}
-                  title="ความสูงและทิศทางของคลื่นทะเล"
-                  style={{ marginLeft: collapsed ? 0 : '16px', paddingLeft: '8px' }}
-                >
-                  <div className="layer-icon-wrapper">
-                    <WaveIcon />
-                  </div>
-                  {!collapsed && (
-                    <>
-                      <span className="layer-name">ความสูงและทิศทางของคลื่นทะเล</span>
-                      <div className="layer-check">
-                        <CheckIcon />
-                      </div>
-                    </>
                   )}
                 </div>
               )}
