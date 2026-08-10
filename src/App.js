@@ -46,6 +46,14 @@ const waveIcon = new L.Icon({
   popupAnchor: [0, -16]
 });
 
+// ไอคอนสำหรับตำแหน่งปัจจุบันของผู้ใช้
+const userLocationIcon = L.divIcon({
+  className: 'user-location-icon',
+  html: `<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
+  iconSize: [22, 22],
+  iconAnchor: [11, 11]
+});
+
 function getFeatureViewTarget(feature) {
   if (!feature) return null;
   try {
@@ -111,6 +119,9 @@ function App() {
   
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [waveModalFeature, setWaveModalFeature] = useState(null);
+  
+  // State เก็บพิกัดตำแหน่งปัจจุบันของผู้ใช้
+  const [userLocation, setUserLocation] = useState(null);
 
   const [basemapId, setBasemapId] = useState(() => localStorage.getItem('basemap') || 'osm');
   const [basemapOpen, setBasemapOpen] = useState(false);
@@ -129,23 +140,64 @@ function App() {
   const mapRef = useRef();
   const highlightMarkerRef = useRef(null);
 
-  // === ระบบนับผู้เข้าชมแบบจำลอง (ทำงานตอนเปิดเว็บ 1 ครั้ง) ===
+// === ระบบนับผู้เข้าชมแบบออนไลน์ (Global Counter - นับทุกครั้งที่โหลดหน้า) ===
   useEffect(() => {
-    let savedCount = localStorage.getItem('hydrogis_visitor_count');
-    // สุ่มตัวเลข 0 ถึง 5
-    const randomIncrement = Math.floor(Math.random() * 6); 
+    // เรียก API แบบ /up เพื่อบวกยอดวิวทุกครั้งที่เปิดหรือรีเฟรชหน้าเว็บ
+    const apiUrl = 'https://api.counterapi.dev/v1/hydrogis_chalatat_v1/page_views/up';
 
-    let newCount;
-    if (!savedCount) {
-      newCount = 819 + randomIncrement;
-    } else {
-      newCount = parseInt(savedCount, 10) + randomIncrement;
-    }
-
-    localStorage.setItem('hydrogis_visitor_count', newCount);
-    setVisitorCount(newCount);
+    // +++ เพิ่ม { cache: 'no-store' } ตรงนี้ครับ +++
+    fetch(apiUrl, { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => {
+        // API จะเริ่มนับจาก 1 เราจึงบวก 818 เข้าไป เพื่อให้แสดงค่าเริ่มต้นที่ 819
+        const currentCount = (data.count || 1) + 818;
+        
+        setVisitorCount(currentCount);
+      })
+      .catch(err => {
+        console.error('Counter API Error:', err);
+        // ถ้า API มีปัญหา หรือเน็ตผู้ใช้หลุด ให้แสดงค่าเริ่มต้นที่ 819 ไปก่อน
+        setVisitorCount(819); 
+      });
   }, []);
-  // ========================================================
+  // ============================================
+
+// === ฟังก์ชันหาตำแหน่งปัจจุบัน (อัปเดตให้ค้นหาเร็วขึ้น) ===
+  const handleLocateUser = () => {
+    if (!navigator.geolocation) {
+      alert('เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง');
+      return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const latlng = [latitude, longitude];
+        
+        setUserLocation(latlng);
+        
+        if (mapRef.current) {
+          mapRef.current.flyTo(latlng, 15, { animate: true, duration: 1.5 });
+        }
+      },
+      (error) => {
+        console.error(error);
+        if (error.code === 1) {
+          alert('กรุณาอนุญาตการเข้าถึงตำแหน่ง (Location) ในเบราว์เซอร์ของคุณ');
+        } else if (error.code === 3) {
+          alert('ใช้เวลาค้นหาตำแหน่งนานเกินไป (Timeout) ลองใหม่อีกครั้งครับ');
+        } else {
+          alert('ไม่สามารถค้นหาตำแหน่งปัจจุบันได้ในขณะนี้');
+        }
+      },
+      { 
+        enableHighAccuracy: false, // เปลี่ยนเป็น false เพื่อให้หาตำแหน่งเร็วขึ้น (เน้นใช้ Wi-Fi/เสาสัญญาณ แทนการรอ GPS)
+        timeout: 10000,            // ถ้านานเกิน 10 วินาทีให้ตัดจบเลย จะได้ไม่ค้าง
+        maximumAge: 60000          // อนุญาตให้ใช้ตำแหน่งเดิมที่เครื่องเคยหาไว้ในช่วง 1 นาทีที่ผ่านมาได้ (Cache) จะช่วยให้กดครั้งต่อไปเร็วปรู๊ดปร๊าดเลยครับ
+      } 
+    );
+  };
+  // ===============================
 
   const showHighlight = (latLng) => {
     const map = mapRef.current;
@@ -361,28 +413,18 @@ function App() {
     setDashboardTab('table');
   }, [selectedFeature]);
 
-  // === แยกชุดข้อมูลสำหรับแสดงในแต่ละส่วน ===
   const wavePoints = filteredPoints.filter(f => f.properties?._source === 'thaiwater');
   const otherPoints = filteredPoints.filter(f => f.properties?._source !== 'thaiwater');
   
-  // +++ การกรองเฉพาะข้อมูล "คุณภาพน้ำ" สำหรับส่งให้ DashboardTable +++
   const waterQualityCategory = layers.find(cat => cat.category === 'คุณภาพน้ำ');
   const waterQualityNames = waterQualityCategory ? waterQualityCategory.items.map(item => item.name) : [];
 
   const tablePoints = filteredPoints.filter(feature => {
-    // ตัดคลื่นทะเลทิ้งก่อนเสมอ
     if (feature.properties?._source === 'thaiwater') return false;
-    
-    // ดึงเฉพาะชื่อ Layer ออกมาจาก Feature ID ของ GeoServer (เช่น WaterQuality_13032026.1 -> WaterQuality_13032026)
     const featureLayerName = feature.id ? feature.id.split('.')[0] : '';
-    
-    // รีเทิร์นเฉพาะข้อมูลที่ชื่อ Layer ตรงกับหมวดคุณภาพน้ำ
     return waterQualityNames.includes(featureLayerName);
   });
-  // ========================================================
   
-  // === สร้างเงื่อนไขเช็คว่ามีการเปิดชั้นข้อมูล "แบคทีเรีย" อยู่หรือไม่ ===
-  // เช็คว่ามี ID ไหนใน selectedOrthoIds หรือ selectedLayerIds ที่มีคำว่า 'RWaterQuality_' อยู่บ้าง
   const isBacteriaLayerActive = selectedOrthoIds.some(id => id.includes('RWaterQuality_')) || 
                                 selectedLayerIds.some(id => id.includes('RWaterQuality_'));
   
@@ -416,10 +458,8 @@ function App() {
           HydroGIS ชลาทัศน์ : ศูนย์แผนที่สำรวจและคุณภาพน้ำ
         </h1>
         
-        {/* === ปรับแต่งเมนูด้านขวา (เพิ่มช่องแสดงผู้เข้าชม) === */}
         <div style={{ position: 'absolute', right: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
           
-          {/* Badge แสดงจำนวนผู้เข้าชม */}
           <div 
             style={{ 
               display: 'flex', alignItems: 'center', gap: '6px',
@@ -516,7 +556,8 @@ function App() {
                 format="image/png" transparent={true} version="1.1.1" pane="amphoePane"
               />
 
-              <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, fontFamily: 'Sarabun-Medium, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              {/* ส่วนควบคุมมุมขวาบน */}
+              <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, fontFamily: 'Sarabun-Medium, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                 <button
                   onClick={() => setBasemapOpen(v => !v)}
                   style={{ background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, color: 'var(--c-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: 'var(--c-shadow)', fontFamily: 'inherit' }}
@@ -524,7 +565,7 @@ function App() {
                   {selectedBasemap.label}
                 </button>
                 {basemapOpen && (
-                  <div style={{ marginTop: 4, background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', borderRadius: 8, padding: 4, boxShadow: 'var(--c-shadow-lg)', minWidth: 140 }}>
+                  <div style={{ background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', borderRadius: 8, padding: 4, boxShadow: 'var(--c-shadow-lg)', minWidth: 140 }}>
                     {BASEMAPS.map(b => (
                       <div
                         key={b.id}
@@ -536,6 +577,24 @@ function App() {
                     ))}
                   </div>
                 )}
+                
+                {/* ปุ่มค้นหาตำแหน่งปัจจุบัน */}
+                <button
+                  onClick={handleLocateUser}
+                  title="แสดงตำแหน่งของฉัน"
+                  style={{ 
+                    background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', 
+                    borderRadius: '8px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', boxShadow: 'var(--c-shadow)', color: '#3b82f6', width: '100%',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <img 
+                    src={process.env.PUBLIC_URL + '/assets/mylocation.svg'} 
+                    alt="My Location" 
+                    style={{ width: 20, height: 20, objectFit: 'contain' }} 
+                  />
+                </button>
               </div>
               
               {layers.flatMap(cat => cat.items || [cat]).filter(l => selectedLayerIds.includes(l.id) && l.id !== 'swan_station').map(layer => (
@@ -556,7 +615,6 @@ function App() {
 
               {windEnabled && windData && <WindLayer windData={windData} pane="windPane" />}
 
-              {/* ข้อมูลจุดทั่วไป (ใช้วงกลม) */}
               <MapFeatureCircles 
                 features={otherPoints} 
                 onViewDetail={feature => { 
@@ -567,10 +625,18 @@ function App() {
                 }} 
               />
 
-              {/* แทรก Legend แบคทีเรียตรงนี้ (จะแสดงเมื่อเงื่อนไขเป็นจริง) */}
               {isBacteriaLayerActive && <BacteriaLegend />}
 
-              {/* ข้อมูลจุดคลื่นทะเล (ใช้ไอคอนรูปคลื่น) */}
+              {userLocation && (
+                <Marker position={userLocation} icon={userLocationIcon}>
+                  <Tooltip direction="top" offset={[0, -10]} opacity={1}>
+                    <div style={{ fontFamily: 'Sarabun-Medium, sans-serif', fontSize: '13px' }}>
+                      <strong>ตำแหน่งปัจจุบันของคุณ</strong>
+                    </div>
+                  </Tooltip>
+                </Marker>
+              )}
+
               {wavePoints.map(feature => (
                 <Marker
                   key={feature.id}
@@ -625,11 +691,9 @@ function App() {
                   selectedFeature ? (
                     <FeatureDetail feature={selectedFeature} onBack={() => { setSelectedFeature(null); hideHighlight(); }} onZoomToFeature={handleZoomToFeature} authToken={authToken} />
                   ) : (
-                    // === ส่ง tablePoints (เฉพาะคุณภาพน้ำ) ให้ตารางใช้งาน ===
                     <DashboardTable points={tablePoints} onSelectFeature={feature => { setSelectedFeature(feature); handleZoomToFeature(feature); }} />
                   )
                 ) : (
-                  // === ส่ง tablePoints (เฉพาะคุณภาพน้ำ) ให้กราฟใช้งาน ===
                   <WaterQualityDashboard points={tablePoints} />
                 )}
               </div>

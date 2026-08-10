@@ -33,7 +33,7 @@ const BacteriaLegend = () => {
       minWidth: '150px'
     }}>
       <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#1e293b', textAlign: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px' }}>
-        ระดับความเข้มข้น E.Coli (CFU/g)
+        ระดับความเข้มข้น <br /> E.Coli (CFU/g)
       </h4>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
