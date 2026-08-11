@@ -25,6 +25,8 @@ import WaterQualityDashboard from './WaterQualityDashboard';
 
 // นำเข้า Modal กราฟคลื่นทะเล
 import WaveGraphModal from './WaveGraphModal';
+// นำเข้า กราฟ Cross Section
+import CrossSectionGraph from './CrossSectionGraph';
 
 const BASEMAPS = [
   { id: 'osm',        label: 'OpenStreetMap',  url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' },
@@ -689,6 +691,14 @@ function App() {
                 >
                   <span style={{ fontSize: 16 }}>📈</span> หน้ากราฟ
                 </button>
+                
+                {/* ปุ่มใหม่: รูปตัด crossection */}
+                <button
+                  onClick={() => setDashboardTab('crossection')}
+                  style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: 'Sarabun-Medium, sans-serif', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.18s ease', background: dashboardTab === 'crossection' ? 'var(--c-bg-primary)' : 'transparent', color: dashboardTab === 'crossection' ? 'var(--c-accent-light)' : 'var(--c-text-secondary)', boxShadow: dashboardTab === 'crossection' ? 'var(--c-shadow)' : 'none' }}
+                >
+                  <span style={{ fontSize: 16 }}>⛰️</span> รูปตัด crossection
+                </button>
               </div>
 
               <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -698,8 +708,10 @@ function App() {
                   ) : (
                     <DashboardTable points={tablePoints} onSelectFeature={feature => { setSelectedFeature(feature); handleZoomToFeature(feature); }} />
                   )
-                ) : (
+                ) : dashboardTab === 'graph' ? (
                   <WaterQualityDashboard points={tablePoints} />
+                ) : (
+                  <CrossSectionGraph />
                 )}
               </div>
             </div>
