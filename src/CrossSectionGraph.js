@@ -13,28 +13,42 @@ const SingleWavyWater = (props) => {
   const y = points[0].y;
   const width = endX - startX;
 
-  const step = 25;
-  const fullCycles = Math.floor(width / step);
-  let path = `M ${startX} ${y} `;
-  let cx = startX;
+  const step = 80; // ความยาวคลื่น 1 รอบ (px)
+  const clipId = 'wavyWaterClip';
+
+  // วาดคลื่นให้ "ล้น" ออกไปอีกฝั่งละ 1 รอบคลื่น (step) นอกกรอบ [startX, endX]
+  // เพื่อให้ตอนเลื่อน translateX(-25px) มีคลื่นสำรองไหลเข้ามาแทนที่เสมอ ไม่มีช่องว่างขาดตอน
+  // แล้วค่อย clip เส้นให้โผล่เฉพาะในกรอบ [startX, endX] เป๊ะ ๆ ไม่ให้ทะลุออกนอกแกน X
+  const drawStartX = startX - step;
+  const drawEndX = endX + step;
+  const drawWidth = drawEndX - drawStartX;
+  const fullCycles = Math.ceil(drawWidth / step);
+  const amplitude = 2.5; // ปรับตรงนี้ที่เดียว ยิ่งมาก คลื่นยิ่งสูง/ชัด
+
+  let path = `M ${drawStartX} ${y} `;
+  let cx = drawStartX;
   for (let i = 0; i < fullCycles; i++) {
-    path += `Q ${cx + step * 0.25} ${y - 2.5}, ${cx + step * 0.5} ${y} T ${cx + step} ${y} `;
+    path += `Q ${cx + step * 0.25} ${y - amplitude}, ${cx + step * 0.5} ${y} T ${cx + step} ${y} `;
     cx += step;
-  }
-  if (cx < endX) {
-    path += `L ${endX} ${y} `;
   }
 
   return (
     <g>
       <style>
         {`
-          @keyframes moveWave { 0% { transform: translateX(0); } 100% { transform: translateX(-25px); } }
+          @keyframes moveWave { 0% { transform: translateX(0); } 100% { transform: translateX(-${step}px); } }
           .animate-single-wave { animation: moveWave 3s linear infinite; }
         `}
       </style>
-      <g className="animate-single-wave">
-        <path d={path} fill="none" stroke="#0284c7" strokeWidth="4" opacity="0.9" />
+      <defs>
+        <clipPath id={clipId}>
+          <rect x={startX} y={y - 20} width={Math.max(width, 0)} height={40} />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${clipId})`}>
+        <g className="animate-single-wave">
+          <path d={path} fill="none" stroke="#0284c7" strokeWidth="4" opacity="0.9" />
+        </g>
       </g>
     </g>
   );
@@ -92,21 +106,17 @@ const CrossSectionGraph = () => {
   const chartData = useMemo(() => {
     const filtered = allData.filter(d => d.station === selectedStation);
     const sortedData = filtered.sort((a, b) => a.distance - b.distance);
-    
-    let lastValidElevation = 0;
-    const filledData = sortedData.map(d => {
-      if (d.elevation !== null && !isNaN(d.elevation)) {
-        lastValidElevation = d.elevation;
-      }
-      return {
+
+    // ไม่เติมค่าย้อนหลัง (forward-fill) อีกต่อไป - จุดไหนไม่มีข้อมูล elevation จริง ๆ ให้ตัดทิ้งไปเลย ไม่ต้องแสดง
+    const validData = sortedData
+      .filter(d => d.elevation !== null && !isNaN(d.elevation))
+      .map(d => ({
         ...d,
-        elevation: lastValidElevation,
-        waterLevel: -1.8 
-      };
-    });
+        waterLevel: -1.8
+      }));
 
     const allowedDistances = [0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475, 500]
-    return filledData.filter(d => allowedDistances.includes(Math.round(d.distance)));
+    return validData.filter(d => allowedDistances.includes(Math.round(d.distance)));
   }, [allData, selectedStation]);
 
   const customTicks = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
@@ -271,13 +281,13 @@ const CrossSectionGraph = () => {
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', fontSize: '13px', color: '#475569', fontWeight: 'bold', gap: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: '#dcb788', marginRight: '6px' }}></span>
-                      ระดับทราย
+                      ระดับพื้น
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <svg width="20" height="12" style={{ marginRight: '6px' }}>
                         <path d="M0 6 Q 5 2, 10 6 T 20 6" fill="none" stroke="#0284c7" strokeWidth="2" />
                       </svg>
-                      ระดับน้ำทะเล (-1.8 ม.)
+                      น้ำทะเล
                     </div>
                   </div>
                 )} 
@@ -308,7 +318,9 @@ const CrossSectionGraph = () => {
                 shape={<SingleWavyWater />}
               />
 
-              {/* 2. พื้นทรายสีขาวทึบ (บล็อกน้ำ) */}
+              {/* 2. พื้นทรายสีขาวทึบ (บล็อกน้ำ) - ต้อง animate พร้อมกับเส้นทรายจริง (ข้อ 3) เป๊ะ ๆ
+                   ไม่งั้นบล็อกสีขาว (ซึ่ง snap ไปตำแหน่งใหม่ทันที) จะโผล่ก่อนเส้นทรายที่ค่อย ๆ ไล่มา
+                   ทำให้เห็นเป็นช่องว่างสีขาววาบขึ้นมาก่อนตอนเปลี่ยนสถานี */}
               <Area 
                 type="natural" 
                 dataKey="elevation" 
@@ -317,7 +329,9 @@ const CrossSectionGraph = () => {
                 fillOpacity={1} 
                 baseValue="dataMin"
                 activeDot={false} 
-                isAnimationActive={false}
+                isAnimationActive={true}
+                animationDuration={1500}
+                animationEasing="ease-out"
               />
 
               {/* 3. พื้นทรายจริง */}
