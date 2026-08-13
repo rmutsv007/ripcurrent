@@ -54,11 +54,25 @@ const SingleWavyWater = (props) => {
   );
 };
 
-const CrossSectionGraph = () => {
+// === ตั้งค่าความยาว/ช่วงของแกน X และ Y ไว้ตรงนี้ที่เดียว เพื่อให้ปรับได้ง่าย ===
+const X_AXIS_MIN = 0;
+const X_AXIS_MAX = 400;
+const X_AXIS_STEP = 25;          // ระยะห่างระหว่างจุดข้อมูลบนแกน X (ม.)
+const X_AXIS_TICK_STEP = 50;     // ระยะห่างระหว่าง tick ที่แสดงบนแกน X (ม.)
+const Y_AXIS_MIN_PADDING = -2.5; // เพดานล่างขั้นต่ำของแกน Y เมื่อข้อมูลสูงกว่านี้
+const AUTO_PLAY_INTERVAL_MS = 1200; // ความเร็วในการเล่นอัตโนมัติ (ยิ่งน้อยยิ่งเร็ว)
+
+// รับ selectedStation / onSelectStation จากภายนอกได้ (เช่น ซิงค์กับแผนที่ใน App.js)
+// ถ้าไม่ส่งมาจะใช้ state ภายในของตัวเองแทน (ใช้งานแบบเดี่ยวได้เหมือนเดิม)
+const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStation } = {}) => {
   const [allData, setAllData] = useState([]);
-  const [selectedStation, setSelectedStation] = useState('0+000');
+  const [internalSelectedStation, setInternalSelectedStation] = useState('0+000');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const selectedStation = selectedStationProp ?? internalSelectedStation;
+  const setSelectedStation = onSelectStation ?? setInternalSelectedStation;
 
   useEffect(() => {
     const fetchCSV = async () => {
@@ -73,15 +87,14 @@ const CrossSectionGraph = () => {
 
         const parsedData = rows.slice(1).map(row => {
           const values = row.split(',');
-          const originalDist = parseFloat(values[1]) || 0;
-          const invertedDist = 500 - originalDist;
-          
+          const distance = parseFloat(values[1]) || 0;
+
           const elStr = values[2]?.trim();
           const elevation = (elStr === '' || elStr === undefined) ? null : parseFloat(elStr);
 
           return {
             station: values[0]?.trim(),
-            distance: invertedDist,
+            distance: distance,
             elevation: elevation
           };
         });
@@ -103,23 +116,74 @@ const CrossSectionGraph = () => {
     return uniqueStations;
   }, [allData]);
 
+  // ตำแหน่ง index ของสถานีที่เลือกอยู่ในลิสต์ (ใช้ขับ slider และปุ่มก่อนหน้า/ถัดไป)
+  const selectedIndex = Math.max(0, stations.indexOf(selectedStation));
+
+  const goToIndex = (idx) => {
+    const clamped = Math.min(Math.max(idx, 0), stations.length - 1);
+    if (stations[clamped]) setSelectedStation(stations[clamped]);
+  };
+
+  // การเลื่อนสถานีด้วยมือ (ปุ่ม/slider/dropdown) ให้หยุด autoplay ไปด้วยเสมอ
+  const handlePrevStation = () => { setIsPlaying(false); goToIndex(selectedIndex - 1); };
+  const handleNextStation = () => { setIsPlaying(false); goToIndex(selectedIndex + 1); };
+  const handleSliderChange = (idx) => { setIsPlaying(false); goToIndex(idx); };
+  const handleDropdownChange = (station) => {
+    setIsPlaying(false);
+    const idx = stations.indexOf(station);
+    if (idx >= 0) goToIndex(idx);
+  };
+
+  // เล่นอัตโนมัติ: ไล่ดูรูปตัดทีละสถานีต่อเนื่องกัน วนกลับไปเริ่มต้นเมื่อถึงสถานีสุดท้าย
+  useEffect(() => {
+    if (!isPlaying || stations.length === 0) return;
+    const timer = setInterval(() => {
+      setSelectedStation(prevStation => {
+        const currentIdx = stations.indexOf(prevStation);
+        const nextIdx = (currentIdx + 1) % stations.length;
+        return stations[nextIdx];
+      });
+    }, AUTO_PLAY_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [isPlaying, stations, setSelectedStation]);
+
+  const toggleAutoPlay = () => setIsPlaying(v => !v);
+
+  // จุดระยะทางที่อนุญาตให้แสดงบนแกน X สร้างจากตัวแปรความยาวแกนด้านบน
+  const allowedDistances = useMemo(() => {
+    const arr = [];
+    for (let d = X_AXIS_MIN; d <= X_AXIS_MAX; d += X_AXIS_STEP) {
+      arr.push(d);
+    }
+    return arr;
+  }, []);
+
+  // tick ที่แสดงบนแกน X สร้างจากตัวแปรความยาวแกนด้านบน
+  const customTicks = useMemo(() => {
+    const arr = [];
+    for (let d = X_AXIS_MIN; d <= X_AXIS_MAX; d += X_AXIS_TICK_STEP) {
+      arr.push(d);
+    }
+    return arr;
+  }, []);
+
   const chartData = useMemo(() => {
     const filtered = allData.filter(d => d.station === selectedStation);
     const sortedData = filtered.sort((a, b) => a.distance - b.distance);
 
-    // ไม่เติมค่าย้อนหลัง (forward-fill) อีกต่อไป - จุดไหนไม่มีข้อมูล elevation จริง ๆ ให้ตัดทิ้งไปเลย ไม่ต้องแสดง
-    const validData = sortedData
-      .filter(d => d.elevation !== null && !isNaN(d.elevation))
-      .map(d => ({
+    // ไม่ตัดจุดที่ไม่มีค่า elevation ทิ้ง แต่คงไว้เป็น null แทน
+    // เพื่อให้กราฟเว้นช่องว่าง (ไม่ลากเส้นเชื่อมข้ามช่องที่ไม่มีข้อมูลจริง)
+    const mappedData = sortedData.map(d => {
+      const hasElevation = d.elevation !== null && !isNaN(d.elevation);
+      return {
         ...d,
+        elevation: hasElevation ? d.elevation : null,
         waterLevel: -1.8
-      }));
+      };
+    });
 
-    const allowedDistances = [0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475, 500]
-    return validData.filter(d => allowedDistances.includes(Math.round(d.distance)));
-  }, [allData, selectedStation]);
-
-  const customTicks = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+    return mappedData.filter(d => allowedDistances.includes(Math.round(d.distance)));
+  }, [allData, selectedStation, allowedDistances]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -182,30 +246,85 @@ const CrossSectionGraph = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', padding: '16px', background: '#f8fafc', borderRadius: '16px' }}>
-        <div style={{ fontSize: '14px', color: '#475569', fontWeight: 600 }}>เลือกสถานี:</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <select 
-            value={selectedStation} 
-            onChange={(e) => setSelectedStation(e.target.value)}
-            style={{ 
-              padding: '8px 16px', 
-              border: 'none', 
-              background: '#ffffff', 
-              borderRadius: '20px', 
-              color: '#334155', 
-              fontWeight: 600, 
-              outline: 'none', 
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              fontFamily: 'inherit',
-              cursor: 'pointer'
-            }}
-          >
-            {stations.map(station => (
-              <option key={station} value={station}>{station}</option>
-            ))}
-          </select>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', padding: '16px 20px', background: '#f8fafc', borderRadius: '16px' }}>
+        <div style={{ fontSize: '14px', color: '#475569', fontWeight: 600, whiteSpace: 'nowrap' }}>เลือกสถานี:</div>
+
+        <button
+          onClick={handlePrevStation}
+          disabled={selectedIndex <= 0}
+          aria-label="สถานีก่อนหน้า"
+          style={{
+            width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none',
+            background: selectedIndex <= 0 ? '#e2e8f0' : '#ffffff',
+            color: selectedIndex <= 0 ? '#94a3b8' : '#334155',
+            boxShadow: selectedIndex <= 0 ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
+            cursor: selectedIndex <= 0 ? 'default' : 'pointer',
+            fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >‹</button>
+
+        <input
+          type="range"
+          min={0}
+          max={Math.max(stations.length - 1, 0)}
+          step={1}
+          value={selectedIndex}
+          onChange={(e) => handleSliderChange(Number(e.target.value))}
+          style={{ flex: 1, accentColor: '#c49a6c', cursor: 'pointer' }}
+        />
+
+        <button
+          onClick={handleNextStation}
+          disabled={selectedIndex >= stations.length - 1}
+          aria-label="สถานีถัดไป"
+          style={{
+            width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none',
+            background: selectedIndex >= stations.length - 1 ? '#e2e8f0' : '#ffffff',
+            color: selectedIndex >= stations.length - 1 ? '#94a3b8' : '#334155',
+            boxShadow: selectedIndex >= stations.length - 1 ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
+            cursor: selectedIndex >= stations.length - 1 ? 'default' : 'pointer',
+            fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >›</button>
+
+        {/* ปุ่มเล่นอัตโนมัติ - ไล่ดูรูปตัดทีละสถานีต่อเนื่องกัน */}
+        <button
+          onClick={toggleAutoPlay}
+          aria-label={isPlaying ? 'หยุดเล่นอัตโนมัติ' : 'เล่นอัตโนมัติ'}
+          title={isPlaying ? 'หยุดเล่นอัตโนมัติ' : 'เล่นอัตโนมัติไล่ดูสถานี'}
+          style={{
+            width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none',
+            background: isPlaying ? '#c49a6c' : '#ffffff',
+            color: isPlaying ? '#ffffff' : '#334155',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+            cursor: 'pointer',
+            fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >{isPlaying ? '⏸' : '▶'}</button>
+
+        {/* เลือกแบบตรงจุดด้วย dropdown สำหรับกรณีต้องการกระโดดไปสถานีที่รู้เลขแน่นอน */}
+        <select
+          value={selectedStation}
+          onChange={(e) => handleDropdownChange(e.target.value)}
+          style={{
+            padding: '8px 14px',
+            border: 'none',
+            background: '#ffffff',
+            borderRadius: '20px',
+            color: '#334155',
+            fontWeight: 700,
+            outline: 'none',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+            flexShrink: 0,
+            minWidth: '90px'
+          }}
+        >
+          {stations.map(station => (
+            <option key={station} value={station}>{station}</option>
+          ))}
+        </select>
       </div>
 
       <h4 style={{ textAlign: 'center', margin: '0 0 16px 0', fontSize: '18px', color: '#1e293b', fontWeight: 700 }}>
@@ -254,7 +373,7 @@ const CrossSectionGraph = () => {
               <XAxis 
                 dataKey="distance" 
                 type="number"
-                domain={[0, 500]}
+                domain={[X_AXIS_MIN, X_AXIS_MAX]}
                 ticks={customTicks}
                 axisLine={true} 
                 tickLine={true}
@@ -268,7 +387,7 @@ const CrossSectionGraph = () => {
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} 
-                domain={[(dataMin) => Math.min(dataMin, -2.5), 'auto']}
+                domain={[(dataMin) => Math.min(dataMin, Y_AXIS_MIN_PADDING), 'auto']}
                 label={{ value: 'ความสูง (ม.)', angle: -90, position: 'insideLeft', fontSize: 14, fill: '#475569', fontWeight: 600 }}
               />
               
@@ -328,6 +447,7 @@ const CrossSectionGraph = () => {
                 fill="#ffffff" 
                 fillOpacity={1} 
                 baseValue="dataMin"
+                connectNulls={false}
                 activeDot={false} 
                 isAnimationActive={true}
                 animationDuration={1500}
@@ -343,6 +463,7 @@ const CrossSectionGraph = () => {
                 fillOpacity={1} 
                 fill="url(#colorElevation)" 
                 baseValue="dataMin"
+                connectNulls={false}
                 activeDot={{ r: 6, fill: '#ffffff', stroke: '#c49a6c', strokeWidth: 4 }} 
                 isAnimationActive={true}
                 animationDuration={1500}

@@ -2,8 +2,8 @@
  * App.js — คอมโพเนนต์หลักของแอปพลิเคชัน
  */
 
-import React, { useRef, useState, useEffect } from 'react';
-import { MapContainer, TileLayer, WMSTileLayer, useMap, Marker, Tooltip } from 'react-leaflet';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
+import { MapContainer, TileLayer, WMSTileLayer, GeoJSON, useMap, Marker, Tooltip } from 'react-leaflet';
 import { MapFeatureCircles } from './MapFeatureCircles';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -40,6 +40,16 @@ const BASEMAPS = [
 const LONGDO_WEATHER_KEY = process.env.REACT_APP_LONGDO_WEATHER_KEY || '';
 const RAIN_LAYER_URL = `https://weather.longdo.com/rain/api/v1/layer/latest/{z}/{x}/{y}.png?key=${LONGDO_WEATHER_KEY}`;
 const WIND_API_URL = process.env.REACT_APP_WIND_API_URL || 'http://localhost:5000/api/wind';
+
+// ชั้นข้อมูลเส้นแนวรูปตัด (crossline) - ยาวเส้นละ 400 ม. เรียงกัน 0+000 ถึง 7+400 มี field "station"
+const CROSSLINE_WFS_URL = 'https://map.surveywms.com/geoserver/ChalatatSongkhla/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ChalatatSongkhla:crossline&outputFormat=application/json&maxFeatures=200';
+const CROSSLINE_STATION_FIELD = 'station';
+const CROSSLINE_COLOR = '#38bdf8';
+const CROSSLINE_COLOR_SELECTED = '#f97316';
+const CROSSLINE_WEIGHT = 2.5;
+const CROSSLINE_WEIGHT_SELECTED = 6;
+const CROSSLINE_OPACITY = 0.45;
+const CROSSLINE_OPACITY_SELECTED = 1;
 
 const waveIcon = new L.Icon({
   iconUrl: process.env.PUBLIC_URL + '/assets/wave.png',
@@ -89,6 +99,7 @@ function LayerPaneSetup() {
     if (!map.getPane('rainPane')) map.createPane('rainPane');
     if (!map.getPane('livestockPane')) map.createPane('livestockPane');
     if (!map.getPane('windPane')) map.createPane('windPane');
+    if (!map.getPane('crosslinePane')) map.createPane('crosslinePane');
 
     map.getPane('amphoePane').style.zIndex = 330;
     map.getPane('waterwayPane').style.zIndex = 339;
@@ -97,6 +108,7 @@ function LayerPaneSetup() {
     map.getPane('livestockPane').style.zIndex = 350;
     map.getPane('windPane').style.zIndex = 355;
     map.getPane('windPane').style.pointerEvents = 'none';
+    map.getPane('crosslinePane').style.zIndex = 360;
   }, [map]);
   return null;
 }
@@ -121,6 +133,12 @@ function App() {
   
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [waveModalFeature, setWaveModalFeature] = useState(null);
+
+  // สถานี crossection ที่เลือกอยู่ - ใช้ร่วมกันระหว่าง CrossSectionGraph และเส้น crossline บนแผนที่
+  const [selectedStation, setSelectedStation] = useState('0+000');
+  const [crosslineFeatures, setCrosslineFeatures] = useState([]);
+  const crosslineLayerRef = useRef(null);
+  const selectedStationRef = useRef(selectedStation); // ใช้ใน event handler ของ leaflet กัน stale closure
   
   // State เก็บพิกัดตำแหน่งปัจจุบันของผู้ใช้
   const [userLocation, setUserLocation] = useState(null);
@@ -394,6 +412,68 @@ function App() {
 
   const handleOrthoOpacityChange = (layerId, value) => setOrthoOpacities(prev => ({ ...prev, [layerId]: value }));
 
+  // === โหลดชั้นข้อมูลเส้น crossline (แบบ lazy โหลดครั้งแรกที่เปิดแท็บรูปตัดเท่านั้น) ===
+  useEffect(() => {
+    if (dashboardTab !== 'crossection' || crosslineFeatures.length > 0) return;
+    let cancelled = false;
+    fetch(CROSSLINE_WFS_URL)
+      .then(res => res.json())
+      .then(data => {
+        if (!cancelled) setCrosslineFeatures(data?.features || []);
+      })
+      .catch(err => {
+        console.error('Error fetching crossline layer:', err);
+      });
+    return () => { cancelled = true; };
+  }, [dashboardTab, crosslineFeatures.length]);
+
+  // === ตั้งค่าอ้างอิงสถานีปัจจุบันไว้ใช้ใน event handler ของ leaflet กัน stale closure ===
+  useEffect(() => {
+    selectedStationRef.current = selectedStation;
+  }, [selectedStation]);
+
+  // === ซูมไปยังเส้นของสถานีที่เลือก เฉพาะตอนอยู่ในแท็บรูปตัด ===
+  useEffect(() => {
+    if (dashboardTab !== 'crossection' || !mapRef.current) return;
+    const feature = crosslineFeatures.find(f => f.properties?.[CROSSLINE_STATION_FIELD] === selectedStation);
+    if (!feature) return;
+    const target = getFeatureViewTarget(feature);
+    if (target?.bounds) mapRef.current.fitBounds(target.bounds, { padding: [80, 80], maxZoom: 19 });
+  }, [selectedStation, crosslineFeatures, dashboardTab]);
+
+  // === คลิกเส้น crossline บนแผนที่ -> เปลี่ยนสถานีในกราฟ + สลับไปแท็บรูปตัด ===
+  const handleCrosslineFeature = (feature, layer) => {
+    const sta = feature.properties?.[CROSSLINE_STATION_FIELD];
+    if (sta === selectedStation && layer.bringToFront) layer.bringToFront();
+    layer.on('click', () => {
+      if (!sta) return;
+      setSelectedStation(sta);
+      setDashboardTab('crossection');
+      setDashboardCollapsed(false);
+    });
+    layer.on('mouseover', () => layer.setStyle({ weight: CROSSLINE_WEIGHT_SELECTED }));
+    layer.on('mouseout', () => {
+      const isSelected = sta === selectedStationRef.current;
+      layer.setStyle({ weight: isSelected ? CROSSLINE_WEIGHT_SELECTED : CROSSLINE_WEIGHT });
+    });
+    if (sta) layer.bindTooltip(sta, { sticky: true, className: 'crossline-tooltip' });
+  };
+
+  const crosslineStyle = (feature) => {
+    const isSelected = feature.properties?.[CROSSLINE_STATION_FIELD] === selectedStation;
+    return {
+      color: isSelected ? CROSSLINE_COLOR_SELECTED : CROSSLINE_COLOR,
+      weight: isSelected ? CROSSLINE_WEIGHT_SELECTED : CROSSLINE_WEIGHT,
+      opacity: isSelected ? CROSSLINE_OPACITY_SELECTED : CROSSLINE_OPACITY,
+    };
+  };
+
+  // ห่อ features เป็น FeatureCollection แบบ memo กันสร้าง object ใหม่ทุก re-render (จะทำให้ layer ถูกสร้างซ้ำโดยไม่จำเป็น)
+  const crosslineCollection = useMemo(
+    () => ({ type: 'FeatureCollection', features: crosslineFeatures }),
+    [crosslineFeatures]
+  );
+
   const handleZoomToFeature = feature => {
     mapRef.current?.closePopup();
     const target = getFeatureViewTarget(feature);
@@ -612,6 +692,17 @@ function App() {
                 <WMSTileLayer key={layer.id} url="https://map.surveywms.com/geoserver/ChalatatSongkhla/wms" layers={`ChalatatSongkhla:${layer.name}`} format="image/png" transparent={true} version="1.1.1" maxZoom={24} opacity={orthoOpacities[layer.id] ?? 0.4} pane="OrthoPane" />
               ))}
 
+              {dashboardTab === 'crossection' && crosslineFeatures.length > 0 && (
+                <GeoJSON
+                  key={selectedStation}
+                  ref={crosslineLayerRef}
+                  data={crosslineCollection}
+                  style={crosslineStyle}
+                  onEachFeature={handleCrosslineFeature}
+                  pane="crosslinePane"
+                />
+              )}
+
               {rainEnabled && (
                 <>
                   <TileLayer url={rainTileUrl} opacity={0.7} maxZoom={24} minZoom={0} maxNativeZoom={13} minNativeZoom={5} pane="rainPane" />
@@ -711,7 +802,7 @@ function App() {
                 ) : dashboardTab === 'graph' ? (
                   <WaterQualityDashboard points={tablePoints} />
                 ) : (
-                  <CrossSectionGraph />
+                  <CrossSectionGraph selectedStation={selectedStation} onSelectStation={setSelectedStation} />
                 )}
               </div>
             </div>
