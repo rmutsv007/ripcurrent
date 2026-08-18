@@ -22,6 +22,7 @@ import WindLayer from './WindLayer';
 import './MapOverrides.css';
 import './sarabun-font.css';
 import WaterQualityDashboard from './WaterQualityDashboard';
+import './ThemeToggle.css'; // นำเข้าสไตล์สำหรับปุ่ม Day/Night Toggle แบบคลิปเป๊ะๆ
 
 // นำเข้า Modal กราฟคลื่นทะเล
 import WaveGraphModal from './WaveGraphModal';
@@ -134,13 +135,11 @@ function App() {
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [waveModalFeature, setWaveModalFeature] = useState(null);
 
-  // สถานี crossection ที่เลือกอยู่ - ใช้ร่วมกันระหว่าง CrossSectionGraph และเส้น crossline บนแผนที่
   const [selectedStation, setSelectedStation] = useState('0+000');
   const [crosslineFeatures, setCrosslineFeatures] = useState([]);
   const crosslineLayerRef = useRef(null);
-  const selectedStationRef = useRef(selectedStation); // ใช้ใน event handler ของ leaflet กัน stale closure
+  const selectedStationRef = useRef(selectedStation);
   
-  // State เก็บพิกัดตำแหน่งปัจจุบันของผู้ใช้
   const [userLocation, setUserLocation] = useState(null);
 
   const [basemapId, setBasemapId] = useState(() => localStorage.getItem('basemap') || 'osm');
@@ -153,27 +152,22 @@ function App() {
   const [authUser, setAuthUser] = useState(() => localStorage.getItem('authUser') || null);
   const [showLogin, setShowLogin] = useState(false);
   
-  // State เก็บจำนวนผู้เข้าชม
   const [visitorCount, setVisitorCount] = useState(0);
 
   const toggleBtnRef = useRef();
   const mapRef = useRef();
   const highlightMarkerRef = useRef(null);
 
-// === ระบบนับผู้เข้าชมแบบออนไลน์ (Firebase Realtime Database) ===
   useEffect(() => {
-    // ลิงก์ Firebase ของคุณ พร้อมเติม /visitorCount.json ต่อท้าย
     const firebaseUrl = 'https://hydrogi-default-rtdb.asia-southeast1.firebasedatabase.app/visitorCount.json';
 
     fetch(firebaseUrl)
       .then(res => res.json())
       .then(currentCount => {
-        // ถ้าฐานข้อมูลยังว่างเปล่า (null) ให้เริ่มที่ 819 ถ้ามีเลขแล้วให้บวกเพิ่มทีละ 1
         const newCount = currentCount === null ? 819 : currentCount + 1;
         
         setVisitorCount(newCount);
 
-        // ส่งตัวเลขที่บวกแล้ว กลับไปบันทึกทับใน Firebase
         fetch(firebaseUrl, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -182,12 +176,10 @@ function App() {
       })
       .catch(err => {
         console.error('Database Error:', err);
-        setVisitorCount(819); // ถ้าเน็ตหลุด ให้แสดง 819 ป้องกันเลขหาย
+        setVisitorCount(819); 
       });
   }, []);
-  // ============================================
 
-// === ฟังก์ชันหาตำแหน่งปัจจุบัน (อัปเดตให้ค้นหาเร็วขึ้น) ===
   const handleLocateUser = () => {
     if (!navigator.geolocation) {
       alert('เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง');
@@ -216,13 +208,12 @@ function App() {
         }
       },
       { 
-        enableHighAccuracy: false, // เปลี่ยนเป็น false เพื่อให้หาตำแหน่งเร็วขึ้น (เน้นใช้ Wi-Fi/เสาสัญญาณ แทนการรอ GPS)
-        timeout: 10000,            // ถ้านานเกิน 10 วินาทีให้ตัดจบเลย จะได้ไม่ค้าง
-        maximumAge: 60000          // อนุญาตให้ใช้ตำแหน่งเดิมที่เครื่องเคยหาไว้ในช่วง 1 นาทีที่ผ่านมาได้ (Cache) จะช่วยให้กดครั้งต่อไปเร็วปรู๊ดปร๊าดเลยครับ
+        enableHighAccuracy: false, 
+        timeout: 10000,            
+        maximumAge: 60000          
       } 
     );
   };
-  // ===============================
 
   const showHighlight = (latLng) => {
     const map = mapRef.current;
@@ -262,26 +253,9 @@ function App() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  // เปลี่ยนจากแอนิเมชันวงกลมดำคลุมจอ เป็นการสลับแบบ Fade ปกติ
   const toggleTheme = () => {
-    const btn = toggleBtnRef.current;
-    const rect = btn.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-
-    const overlay = document.createElement('div');
-    overlay.className = 'theme-reveal-overlay';
-    overlay.style.setProperty('--reveal-x', `${x}px`);
-    overlay.style.setProperty('--reveal-y', `${y}px`);
-
-    const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', nextTheme);
-    overlay.style.background = getComputedStyle(document.documentElement).getPropertyValue('--c-bg-app');
-    document.documentElement.setAttribute('data-theme', nextTheme === 'light' ? 'dark' : 'light');
-
-    document.body.appendChild(overlay);
-
-    requestAnimationFrame(() => setTheme(t => t === 'dark' ? 'light' : 'dark'));
-    overlay.addEventListener('animationend', () => overlay.remove());
+    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
   };
 
   useEffect(() => localStorage.setItem('basemap', basemapId), [basemapId]);
@@ -412,7 +386,6 @@ function App() {
 
   const handleOrthoOpacityChange = (layerId, value) => setOrthoOpacities(prev => ({ ...prev, [layerId]: value }));
 
-  // === โหลดชั้นข้อมูลเส้น crossline (แบบ lazy โหลดครั้งแรกที่เปิดแท็บรูปตัดเท่านั้น) ===
   useEffect(() => {
     if (dashboardTab !== 'crossection' || crosslineFeatures.length > 0) return;
     let cancelled = false;
@@ -427,12 +400,10 @@ function App() {
     return () => { cancelled = true; };
   }, [dashboardTab, crosslineFeatures.length]);
 
-  // === ตั้งค่าอ้างอิงสถานีปัจจุบันไว้ใช้ใน event handler ของ leaflet กัน stale closure ===
   useEffect(() => {
     selectedStationRef.current = selectedStation;
   }, [selectedStation]);
 
-  // === ซูมไปยังเส้นของสถานีที่เลือก เฉพาะตอนอยู่ในแท็บรูปตัด ===
   useEffect(() => {
     if (dashboardTab !== 'crossection' || !mapRef.current) return;
     const feature = crosslineFeatures.find(f => f.properties?.[CROSSLINE_STATION_FIELD] === selectedStation);
@@ -441,7 +412,6 @@ function App() {
     if (target?.bounds) mapRef.current.fitBounds(target.bounds, { padding: [80, 80], maxZoom: 19 });
   }, [selectedStation, crosslineFeatures, dashboardTab]);
 
-  // === คลิกเส้น crossline บนแผนที่ -> เปลี่ยนสถานีในกราฟ + สลับไปแท็บรูปตัด ===
   const handleCrosslineFeature = (feature, layer) => {
     const sta = feature.properties?.[CROSSLINE_STATION_FIELD];
     if (sta === selectedStation && layer.bringToFront) layer.bringToFront();
@@ -468,7 +438,6 @@ function App() {
     };
   };
 
-  // ห่อ features เป็น FeatureCollection แบบ memo กันสร้าง object ใหม่ทุก re-render (จะทำให้ layer ถูกสร้างซ้ำโดยไม่จำเป็น)
   const crosslineCollection = useMemo(
     () => ({ type: 'FeatureCollection', features: crosslineFeatures }),
     [crosslineFeatures]
@@ -563,48 +532,66 @@ function App() {
             {visitorCount.toLocaleString()}
           </div>
 
+          {/* ส่วนจัดการบัญชี (เข้าสู่ระบบ / ออกจากระบบ) */}
           {authToken ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Sarabun-Medium' }}>{authUser}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 13, color: 'var(--c-text)', fontFamily: 'Sarabun-Medium', fontWeight: 600 }}>
+                👋 สวัสดี, {authUser}
+              </span>
               <button
+                className="auth-btn logout"
                 onClick={() => {
                   localStorage.removeItem('authToken');
                   localStorage.removeItem('authUser');
                   setAuthToken(null);
                   setAuthUser(null);
                 }}
-                style={{
-                  background: 'var(--c-bg-icon)', border: '1px solid var(--c-border)',
-                  borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600,
-                  color: 'var(--c-text-secondary)', cursor: 'pointer', fontFamily: 'Sarabun-Medium',
-                }}
-              >ออกจากระบบ</button>
+              >
+                <span style={{ fontSize: '14px' }}>🚪</span> ออกจากระบบ
+              </button>
             </div>
           ) : (
             <button
+              className="auth-btn login"
               onClick={() => setShowLogin(true)}
-              style={{
-                background: 'var(--c-bg-icon)', border: '1px solid var(--c-border)',
-                borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600,
-                color: 'var(--c-accent-light)', cursor: 'pointer', fontFamily: 'Sarabun-Medium',
-                display: 'flex', alignItems: 'center', gap: 4,
-              }}
             >
-              เข้าสู่ระบบ
+              <span className="login-icon" style={{ fontSize: '14px' }}></span> เข้าสู่ระบบ
             </button>
           )}
           
-          <button
+          {/* ปุ่ม Day/Night Toggle (ปรับลด 3D ให้เหมือน Figma) */}
+          <div
             ref={toggleBtnRef}
+            className={`theme-toggle-container ${theme}`}
             onClick={toggleTheme}
-            style={{
-              background: 'var(--c-bg-icon)', border: '1px solid var(--c-border)', borderRadius: 8,
-              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: 'var(--c-accent-light)', transition: 'all 0.2s',
-            }}
           >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
+            {/* ดวงดาว 4 แฉก (4 ดวงแบบในคลิป) */}
+            <div className="toggle-star toggle-star-1"></div>
+            <div className="toggle-star toggle-star-2"></div>
+            <div className="toggle-star toggle-star-3"></div>
+            <div className="toggle-star toggle-star-4"></div>
+
+            {/* ก้อนเมฆ 2 ชั้น (ซ่อนตอนกลางคืน) */}
+            <div className="toggle-cloud-layer">
+              {/* เมฆชั้นหลัง (โปร่งแสง) */}
+              <div className="toggle-cloud cloud-back c-b-1"></div>
+              <div className="toggle-cloud cloud-back c-b-2"></div>
+              <div className="toggle-cloud cloud-back c-b-3"></div>
+              {/* เมฆชั้นหน้า (ทึบแสง) */}
+              <div className="toggle-cloud cloud-front c-f-1"></div>
+              <div className="toggle-cloud cloud-front c-f-2"></div>
+              <div className="toggle-cloud cloud-front c-f-3"></div>
+            </div>
+
+            {/* ลูกกลิ้ง (พระอาทิตย์ / ดวงจันทร์) */}
+            <div className="toggle-thumb">
+              {/* หลุมบนดวงจันทร์ */}
+              <div className="toggle-crater toggle-crater-1"></div>
+              <div className="toggle-crater toggle-crater-2"></div>
+              <div className="toggle-crater toggle-crater-3"></div>
+            </div>
+          </div>
+
         </div>
       </header>
 
@@ -770,26 +757,29 @@ function App() {
           {!dashboardCollapsed && (
             <div style={{ flex: 1, width: '100%', padding: '16px 16px 16px 8px', height: '100%', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'inline-flex', gap: 4, marginBottom: 12, background: 'var(--c-bg-secondary)', padding: 4, borderRadius: 12, alignSelf: 'flex-start' }}>
+                {/* แถบเมนู Dashboard Tabs (อัปเกรดดีไซน์ใหม่) */}
+              <div className="dashboard-tab-container">
                 <button
+                  className={`dashboard-tab-btn ${dashboardTab === 'table' ? 'active' : ''}`}
                   onClick={() => setDashboardTab('table')}
-                  style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: 'Sarabun-Medium, sans-serif', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.18s ease', background: dashboardTab === 'table' ? 'var(--c-bg-primary)' : 'transparent', color: dashboardTab === 'table' ? 'var(--c-accent-light)' : 'var(--c-text-secondary)', boxShadow: dashboardTab === 'table' ? 'var(--c-shadow)' : 'none' }}
                 >
-                  <span style={{ fontSize: 16 }}>📋</span> ข้อมูลชายหาดชลาทัศน์
-                </button>
-                <button
-                  onClick={() => setDashboardTab('graph')}
-                  style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: 'Sarabun-Medium, sans-serif', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.18s ease', background: dashboardTab === 'graph' ? 'var(--c-bg-primary)' : 'transparent', color: dashboardTab === 'graph' ? 'var(--c-accent-light)' : 'var(--c-text-secondary)', boxShadow: dashboardTab === 'graph' ? 'var(--c-shadow)' : 'none' }}
-                >
-                  <span style={{ fontSize: 16 }}>📈</span> หน้ากราฟ
+                  <span className="tab-icon">📋</span> คุณภาพน้ำ
                 </button>
                 
-                {/* ปุ่มใหม่: รูปตัด crossection */}
                 <button
-                  onClick={() => setDashboardTab('crossection')}
-                  style={{ padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: 'Sarabun-Medium, sans-serif', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.18s ease', background: dashboardTab === 'crossection' ? 'var(--c-bg-primary)' : 'transparent', color: dashboardTab === 'crossection' ? 'var(--c-accent-light)' : 'var(--c-text-secondary)', boxShadow: dashboardTab === 'crossection' ? 'var(--c-shadow)' : 'none' }}
+                  className={`dashboard-tab-btn ${dashboardTab === 'graph' ? 'active' : ''}`}
+                  onClick={() => setDashboardTab('graph')}
                 >
-                  <span style={{ fontSize: 16 }}>⛰️</span> รูปตัด crossection
+                  <span className="tab-icon">📈</span> แนวโน้มผลการตรวจเชื้อ
                 </button>
+                
+                <button
+                  className={`dashboard-tab-btn ${dashboardTab === 'crossection' ? 'active' : ''}`}
+                  onClick={() => setDashboardTab('crossection')}
+                >
+                  <span className="tab-icon">⛰️</span> รูปตัด Cross Section
+                </button>
+              </div>
               </div>
 
               <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

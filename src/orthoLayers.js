@@ -33,6 +33,7 @@ const orthoLayers = [
       { id: 'RWaterQuality_27062026', name: 'RWaterQuality_27062026', label: '27 มิ.ย. 2026', icon: '/assets/bacteria.png', iconSize: 35 },
       { id: 'RWaterQuality_12072026', name: 'RWaterQuality_12072026', label: '12 ก.ค. 2026', icon: '/assets/bacteria.png', iconSize: 35 },
       { id: 'RWaterQuality_23072026', name: 'RWaterQuality_23072026', label: '23 ก.ค. 2026', icon: '/assets/bacteria.png', iconSize: 35 },
+      { id: 'RWaterQuality_12082026', name: 'RWaterQuality_12082026', label: '12 ส.ค. 2026', icon: '/assets/bacteria.png', iconSize: 35 },
     ]
   }
 ];

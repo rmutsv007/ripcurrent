@@ -1,0 +1,271 @@
+/* ThemeToggle.css - อัปเดตย้ายดาวหลบดวงจันทร์ + ปรับความเร็วสมูทขึ้น */
+
+.theme-toggle-container {
+  width: 90px;
+  height: 40px;
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0px 4px 8px rgba(0, 0, 0, 0.15);
+  /* 🐌 ปรับให้ช้าลง (0.7s) */
+  transition: background 0.7s ease;
+  flex-shrink: 0;
+}
+
+.theme-toggle-container.light { background: #609DF4; }
+.theme-toggle-container.dark { background: #1C2636; }
+
+/* --- ดวงดาว (Stars) --- */
+.toggle-star {
+  position: absolute;
+  background: #ffffff;
+  clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+  /* 🐌 ปรับให้ช้าลง (0.7s) */
+  transition: all 0.7s ease;
+}
+.theme-toggle-container.light .toggle-star {
+  opacity: 0;
+  transform: translateY(15px) scale(0);
+}
+.theme-toggle-container.dark .toggle-star {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+/* 👈 ย้ายดาวมาอยู่ฝั่งซ้าย (เว้นที่ให้ดวงจันทร์ฝั่งขวา) */
+.toggle-star-1 { width: 14px; height: 14px; top: 8px; left: 12px; }
+.toggle-star-2 { width: 7px; height: 7px; top: 22px; left: 24px; }
+.toggle-star-3 { width: 11px; height: 11px; top: 10px; left: 34px; }
+.toggle-star-4 { width: 6px; height: 6px; top: 24px; left: 44px; }
+
+/* --- ก้อนเมฆ (Clouds) - 2 ชั้น --- */
+.toggle-cloud-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  /* 🐌 ปรับให้ช้าลง (0.7s) */
+  transition: transform 0.7s ease, opacity 0.7s ease;
+}
+.theme-toggle-container.dark .toggle-cloud-layer {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.toggle-cloud {
+  position: absolute;
+  border-radius: 50%;
+}
+.cloud-back { background: rgba(255, 255, 255, 0.5); }
+.cloud-front { background: #ffffff; }
+
+.c-b-1 { width: 35px; height: 35px; bottom: -8px; right: -5px; }
+.c-b-2 { width: 45px; height: 45px; bottom: -12px; right: 25px; }
+.c-b-3 { width: 30px; height: 30px; bottom: -5px; right: 55px; }
+
+.c-f-1 { width: 35px; height: 35px; bottom: -15px; right: -12px; }
+.c-f-2 { width: 45px; height: 45px; bottom: -20px; right: 15px; }
+.c-f-3 { width: 30px; height: 30px; bottom: -12px; right: 45px; }
+
+/* --- ปุ่มลูกกลิ้ง (Sun / Moon) --- */
+.toggle-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+  /* 🐌 ปรับความเร็วการกลิ้งให้ช้าลงและสมูทขึ้น (0.8s) */
+  transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), background 0.7s ease;
+  overflow: hidden;
+  z-index: 10;
+}
+.theme-toggle-container.light .toggle-thumb {
+  background: #FFD43B;
+  transform: translateX(0);
+}
+.theme-toggle-container.dark .toggle-thumb {
+  background: #94A3B8;
+  transform: translateX(50px);
+}
+
+/* --- หลุมดวงจันทร์ (Craters) --- */
+.toggle-crater {
+  position: absolute;
+  background: #64748B;
+  border-radius: 50%;
+  opacity: 0;
+  /* 🐌 ปรับให้ช้าลง (0.7s) */
+  transition: opacity 0.7s ease;
+}
+.theme-toggle-container.dark .toggle-crater {
+  opacity: 1;
+}
+.toggle-crater-1 { width: 10px; height: 10px; top: 6px; left: 16px; }
+.toggle-crater-2 { width: 6px; height: 6px; top: 20px; left: 6px; }
+.toggle-crater-3 { width: 8px; height: 8px; top: 18px; left: 20px; }
+
+/* =========================================
+   ลูกเล่นตอนเอาเมาส์ชี้ (Hover Effects) 
+   ========================================= */
+
+/* 1. ทำให้กรอบปุ่มสว่างขึ้นนิดนึงตอนเอาเมาส์ชี้ */
+.theme-toggle-container:hover {
+  filter: brightness(1.1);
+}
+
+/* 2. ลูกกลิ้งฝั่งพระอาทิตย์: ขยายตัวขึ้นนิดๆ และมีออร่าสีเหลือง */
+.theme-toggle-container.light:hover .toggle-thumb {
+  transform: translateX(0) scale(1.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(255, 212, 59, 0.7);
+}
+
+/* 3. ลูกกลิ้งฝั่งดวงจันทร์: ขยายตัวขึ้นนิดๆ และมีออร่าสีเงิน */
+.theme-toggle-container.dark:hover .toggle-thumb {
+  transform: translateX(50px) scale(1.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(148, 163, 184, 0.7);
+}
+
+/* =========================================
+   สไตล์สำหรับปุ่ม Tab เมนูด้านขวา (Dashboard Tabs)
+   ========================================= */
+
+/* กล่องหุ้มปุ่ม Tab ทั้งหมด */
+.dashboard-tab-container {
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: var(--c-bg-secondary, #f1f5f9);
+  padding: 6px;
+  border-radius: 16px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05); /* หลุมเงาบางๆ ให้รู้ว่าเป็นกรอบเมนู */
+  align-self: flex-start;
+}
+
+/* สไตล์ปุ่มกดแบบปกติ (ยังไม่ได้เลือก) */
+.dashboard-tab-btn {
+  padding: 8px 18px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: 'Sarabun-Medium', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--c-text-secondary, #64748b);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ตั้งค่าไอคอนในปุ่ม */
+.tab-icon {
+  font-size: 16px;
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* เอฟเฟกต์ตอนเอาเมาส์ชี้ (Hover) - ปุ่มที่ไม่ได้เลือก */
+.dashboard-tab-btn:not(.active):hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--c-text, #1e293b);
+  transform: translateY(-2px); /* ลอยขึ้นเบาๆ */
+}
+
+/* =========================================
+   สไตล์ปุ่มตอนที่ถูกเลือก (Active State)
+   ========================================= */
+.dashboard-tab-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); /* ไล่สีน้ำเงินโมเดิร์น */
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35); /* เงาสีน้ำเงินเรืองแสง */
+  transform: translateY(-2px);
+}
+
+/* ลูกเล่นให้ไอคอนเด้งและเอียงนิดๆ ตอนถูกเลือก */
+.dashboard-tab-btn.active .tab-icon {
+  transform: scale(1.2) rotate(-5deg);
+}
+
+/* เอฟเฟกต์ตอนคลิก (ยุบตัวลงเหมือนกดปุ่มจริง) */
+.dashboard-tab-btn:active {
+  transform: scale(0.95);
+}
+
+/* =========================================
+   สไตล์สำหรับปุ่มเข้าสู่ระบบ / ออกจากระบบ (Auth Buttons)
+   ========================================= */
+
+/* =========================================
+   สไตล์สำหรับปุ่มเข้าสู่ระบบ / ออกจากระบบ (Auth Buttons)
+   ========================================= */
+
+/* โครงสร้างพื้นฐานของปุ่ม */
+.auth-btn {
+  height: 40px; /* 👈 กำหนดความสูงให้เท่ากับปุ่มโหมดมืด (40px) */
+  padding: 0 20px; /* 👈 เปลี่ยนจาก padding บน-ล่าง เป็น 0 แล้วใช้การจัดกึ่งกลางแทน */
+  border-radius: 20px; /* ทรงแคปซูล */
+  border: none;
+  font-family: 'Sarabun-Medium', sans-serif;
+  font-size: 14px; /* ปรับขนาดฟอนต์ให้สมดุลกับความสูง */
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 👈 จัดให้อักษรและไอคอนอยู่กึ่งกลางพอดี */
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-sizing: border-box;
+}
+
+/* 🟢 ปุ่มเข้าสู่ระบบ (Login) - สีหลักโดดเด่น */
+.auth-btn.login {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); 
+}
+
+.auth-btn.login:hover {
+  transform: translateY(-2px); 
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.45);
+  filter: brightness(1.1); 
+}
+
+/* 🔴 ปุ่มออกจากระบบ (Logout) - สีรอง สบายตา */
+.auth-btn.logout {
+  background: transparent;
+  color: #ef4444; 
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.auth-btn.logout:hover {
+  background: #fee2e2; 
+  border-color: #ef4444;
+  transform: translateY(-2px);
+}
+
+/* เอฟเฟกต์ตอนกดปุ่ม (Click) จะยุบตัวลงทั้งคู่ */
+.auth-btn:active {
+  transform: translateY(0) scale(0.95);
+}
+
+/* =========================================
+   ลูกเล่นไอคอนกุญแจเข้าสู่ระบบ (Login Icon)
+   ========================================= */
+.login-icon {
+  display: inline-block;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ตอนปกติเป็นแม่กุญแจ */
+.login-icon::before {
+  content: '🔐'; 
+}
+
+/* ตอนเอาเมาส์ชี้ให้ขยาย หมุนเอียง (เหมือนกำลังไข) และเปลี่ยนเป็นรูปกุญแจ */
+.auth-btn.login:hover .login-icon {
+  transform: scale(1.4) rotate(15deg);
+}
+.auth-btn.login:hover .login-icon::before {
+  content: '🔑';
+}
