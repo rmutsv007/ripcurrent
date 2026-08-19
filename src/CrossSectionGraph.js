@@ -59,7 +59,8 @@ const X_AXIS_MIN = 0;
 const X_AXIS_MAX = 400;
 const X_AXIS_STEP = 25;          // ระยะห่างระหว่างจุดข้อมูลบนแกน X (ม.)
 const X_AXIS_TICK_STEP = 50;     // ระยะห่างระหว่าง tick ที่แสดงบนแกน X (ม.)
-const Y_AXIS_MIN_PADDING = -2.5; // เพดานล่างขั้นต่ำของแกน Y เมื่อข้อมูลสูงกว่านี้
+const Y_AXIS_MAX = 4;            // เพดานบนของแกน Y (ค่าคงที่ ตรึงตลอดทุกสถานี)
+const Y_AXIS_MIN = -6;           // เพดานล่างของแกน Y (ค่าคงที่ ตรึงตลอดทุกสถานี)
 const AUTO_PLAY_INTERVAL_MS = 1200; // ความเร็วในการเล่นอัตโนมัติ (ยิ่งน้อยยิ่งเร็ว)
 
 // รับ selectedStation / onSelectStation จากภายนอกได้ (เช่น ซิงค์กับแผนที่ใน App.js)
@@ -167,6 +168,15 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
     return arr;
   }, []);
 
+  // tick ที่แสดงบนแกน Y ห่างกันทีละ 1 หน่วยเสมอ จาก Y_AXIS_MIN ถึง Y_AXIS_MAX
+  const yAxisTicks = useMemo(() => {
+    const arr = [];
+    for (let v = Y_AXIS_MIN; v <= Y_AXIS_MAX; v += 2) {
+      arr.push(v);
+    }
+    return arr;
+  }, []);
+
   const chartData = useMemo(() => {
     const filtered = allData.filter(d => d.station === selectedStation);
     const sortedData = filtered.sort((a, b) => a.distance - b.distance);
@@ -237,7 +247,7 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
               </svg>
             </div>
             <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>
-              รูปตัดขวาง (Cross Section)
+              รูปตัดขวาง (Cross Section) เดือนสิงหาคม 2026
             </h2>
           </div>
           <p style={{ margin: '0 0 0 46px', fontSize: '14px', color: '#64748b' }}>
@@ -387,7 +397,8 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
                 axisLine={false} 
                 tickLine={false} 
                 tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} 
-                domain={[(dataMin) => Math.min(dataMin, Y_AXIS_MIN_PADDING), 'auto']}
+                domain={[Y_AXIS_MIN, Y_AXIS_MAX]}
+                ticks={yAxisTicks}
                 label={{ value: 'ความสูง (ม.)', angle: -90, position: 'insideLeft', fontSize: 14, fill: '#475569', fontWeight: 600 }}
               />
               
