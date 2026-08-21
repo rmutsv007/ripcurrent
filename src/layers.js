@@ -19,7 +19,7 @@ const layers = [
       { id: 'point_Lifeguard', name: 'point_Lifeguard', label: 'เจ้าหน้าที่ดูแลความปลอดภัยทางน้ำ', kind: 'point', icon: '/assets/lifebuoy.png', iconSize: 35 },
       { id: 'ทางลาด_csv8', name: 'ทางลาด_csv8', label: 'ทางลาด', kind: 'point', icon: '/assets/ramp.png', iconSize: 35 },
       { id: 'crossline', name: 'crossline', label: 'รูปตัดตามขวาง', kind: 'line', icon: '/assets/cross.png', iconSize: 35 },
-      //{ id: 'Interpolated points', name: 'Interpolated points', label: 'Interpolated points', kind: 'line', icon: '/assets/cross.png', iconSize: 35 },
+      { id: 'Interpolated points', name: 'Interpolated points', label: 'Interpolated points', kind: 'line', icon: '/assets/cross.png', iconSize: 35 },
     ]
   },
   {

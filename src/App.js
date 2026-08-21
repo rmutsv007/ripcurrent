@@ -792,7 +792,11 @@ function App() {
                 ) : dashboardTab === 'graph' ? (
                   <WaterQualityDashboard points={tablePoints} />
                 ) : (
-                  <CrossSectionGraph selectedStation={selectedStation} onSelectStation={setSelectedStation} />
+                  <CrossSectionGraph 
+                    selectedStation={selectedStation} 
+                    onSelectStation={setSelectedStation} 
+                    isLoggedIn={!!authToken} 
+                  />
                 )}
               </div>
             </div>

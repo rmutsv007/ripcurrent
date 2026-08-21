@@ -207,3 +207,24 @@
     opacity: 1;
   }
 }
+
+/* ปิดขอบดำเวลาคลิกที่ตาราง แถว หรือเซลล์ข้อมูล */
+table, tr, td, th {
+  outline: none !important;
+}
+
+/* ถ้าตารางของคุณถูกครอบด้วย div ที่กดได้ ก็ให้ล้างขอบ div ด้วย */
+.table-container, div:focus {
+  outline: none !important;
+}
+
+/* ลบเส้นขอบดำเวลากดคลิกที่กราฟ Recharts */
+.recharts-wrapper, 
+.recharts-surface {
+  outline: none !important;
+}
+
+/* ลบเส้นขอบดำที่จุด (Active Dot) และทุกชิ้นส่วนในกราฟเวลาคลิก */
+.recharts-wrapper * {
+  outline: none !important;
+}
