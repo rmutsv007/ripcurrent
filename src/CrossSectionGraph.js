@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Brush } from 'recharts';
 
+// ==========================================================================
 // คอมโพเนนต์วาดเส้นคลื่นน้ำเดี่ยวพริ้วไหว
+// หมายเหตุ: ย้าย <style>/@keyframes ออกไปนิยามครั้งเดียวระดับโมดูล (ดูด้านล่าง)
+// เพื่อไม่ให้ inject DOM node ซ้ำทุกครั้งที่ re-render
+// ==========================================================================
 const SingleWavyWater = (props) => {
   const { points } = props;
   if (!points || points.length === 0) return null;
@@ -11,14 +15,14 @@ const SingleWavyWater = (props) => {
   const y = points[0].y;
   const width = endX - startX;
 
-  const step = 80; 
+  const step = 80;
   const clipId = 'wavyWaterClip';
 
   const drawStartX = startX - step;
   const drawEndX = endX + step;
   const drawWidth = drawEndX - drawStartX;
   const fullCycles = Math.ceil(drawWidth / step);
-  const amplitude = 2.5; 
+  const amplitude = 2.5;
 
   let path = `M ${drawStartX} ${y} `;
   let cx = drawStartX;
@@ -29,12 +33,6 @@ const SingleWavyWater = (props) => {
 
   return (
     <g>
-      <style>
-        {`
-          @keyframes moveWave { 0% { transform: translateX(0); } 100% { transform: translateX(-${step}px); } }
-          .animate-single-wave { animation: moveWave 3s linear infinite; }
-        `}
-      </style>
       <defs>
         <clipPath id={clipId}>
           <rect x={startX} y={y - 20} width={Math.max(width, 0)} height={40} />
@@ -49,15 +47,91 @@ const SingleWavyWater = (props) => {
   );
 };
 
+// keyframes ระดับโมดูล — ถูก inject ครั้งเดียวเท่านั้น ไม่ใช่ทุกครั้งที่กราฟ re-render
+let wavyStyleInjected = false;
+const injectWavyStyleOnce = () => {
+  if (wavyStyleInjected || typeof document === 'undefined') return;
+  const styleEl = document.createElement('style');
+  styleEl.setAttribute('data-wavy-water-style', 'true');
+  styleEl.textContent = `
+    @keyframes moveWave { 0% { transform: translateX(0); } 100% { transform: translateX(-80px); } }
+    .animate-single-wave { animation: moveWave 3s linear infinite; }
+  `;
+  document.head.appendChild(styleEl);
+  wavyStyleInjected = true;
+};
+
 const X_AXIS_MIN = 0;
 const X_AXIS_MAX = 400;
-const X_AXIS_STEP = 25;          
-const X_AXIS_TICK_STEP = 50;     
-const Y_AXIS_MAX = 4;            
-const Y_AXIS_MIN = -6;           
-const AUTO_PLAY_INTERVAL_MS = 1200; 
+const X_AXIS_STEP = 25;
+const Y_AXIS_MAX = 4;
+const Y_AXIS_MIN = -6;
+const AUTO_PLAY_INTERVAL_MS = 1200;
+const LOCAL_STORAGE_KEY = 'crossSection_adjustedData_v1';
 
-// เพิ่ม prop `isLoggedIn` เข้ามารับค่าสถานะการเข้าสู่ระบบ
+// ==========================================================================
+// CSV parsing แบบรองรับ quoted fields (RFC4180 แบบง่าย) + CRLF
+// ==========================================================================
+const parseCSVLine = (line) => {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (inQuotes) {
+      if (char === '"') {
+        if (line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',') {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+  }
+  result.push(current);
+  return result;
+};
+
+const parseCSV = (csvText) => {
+  // ตัด \r ทิ้งก่อน แล้วค่อย split ด้วย \n เพื่อรองรับทั้ง LF และ CRLF
+  const normalized = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const rows = normalized.split('\n').filter(row => row.trim() !== '');
+  return rows.map(parseCSVLine);
+};
+
+// อ่าน/เขียน adjustedData ผ่าน localStorage เพื่อกันข้อมูลหายเมื่อ reload
+// (ถ้าโปรเจกต์มี backend endpoint สำหรับบันทึกจริง ให้เปลี่ยนสองฟังก์ชันนี้ไปเรียก API แทน)
+const loadPersistedAdjustments = () => {
+  try {
+    const raw = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (err) {
+    console.error('ไม่สามารถอ่านข้อมูลที่ปรับแก้ไว้ก่อนหน้าได้', err);
+    return {};
+  }
+};
+
+const persistAdjustments = (data) => {
+  try {
+    window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.error('ไม่สามารถบันทึกข้อมูลที่ปรับแก้ได้', err);
+  }
+};
+
 const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStation, isLoggedIn } = {}) => {
   const [allData, setAllData] = useState([]);
   const [internalSelectedStation, setInternalSelectedStation] = useState('0+000');
@@ -65,48 +139,61 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
   const [error, setError] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // === State สำหรับจัดการระบบลากเปลี่ยนค่า ===
-  const [adjustedData, setAdjustedData] = useState({}); // เก็บค่าที่ถูกแก้ไข { station: { distance: newElev } }
-  const [dragInfo, setDragInfo] = useState(null);       // ข้อมูลขณะกำลังลากเมาส์
+  const [adjustedData, setAdjustedData] = useState(() => loadPersistedAdjustments());
+  const [dragInfo, setDragInfo] = useState(null);
+  const [saveStatus, setSaveStatus] = useState('idle'); // idle | saved
+
+  const chartContainerRef = useRef(null);
+  const saveStatusTimerRef = useRef(null);
+
+  // State ควบคุมช่วงของ Brush เริ่มต้นที่ Index 0 ถึง 4 (ซึ่งตรงกับระยะ 0 ถึง 100 เมตร)
+  const [brushIndex, setBrushIndex] = useState({ startIndex: 0, endIndex: 4 });
 
   const selectedStation = selectedStationProp ?? internalSelectedStation;
   const setSelectedStation = onSelectStation ?? setInternalSelectedStation;
 
   useEffect(() => {
-    const fetchCSV = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const response = await fetch(process.env.PUBLIC_URL + '/assets/crossection.csv');
-        if (!response.ok) throw new Error('ไม่สามารถโหลดข้อมูล CSV ได้');
-        const csvText = await response.text();
-        
-        const rows = csvText.split('\n').filter(row => row.trim() !== '');
+    injectWavyStyleOnce();
+  }, []);
 
-        const parsedData = rows.slice(1).map(row => {
-          const values = row.split(',');
-          const distance = parseFloat(values[1]) || 0;
+  const fetchCSV = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(process.env.PUBLIC_URL + '/assets/crossection.csv');
+      if (!response.ok) throw new Error('ไม่สามารถโหลดข้อมูล CSV ได้');
+      const csvText = await response.text();
+
+      const rows = parseCSV(csvText);
+      // แถวแรกคือ header ข้าม แล้วกรองแถวที่มีคอลัมน์ไม่ครบทิ้ง
+      const parsedData = rows.slice(1)
+        .filter(values => values.length >= 3)
+        .map(values => {
+          const station = values[0]?.trim();
+          const distance = parseFloat(values[1]);
           const elStr = values[2]?.trim();
           const elevation = (elStr === '' || elStr === undefined) ? null : parseFloat(elStr);
 
           return {
-            station: values[0]?.trim(),
-            distance: distance,
-            elevation: elevation
+            station,
+            distance: isNaN(distance) ? 0 : distance,
+            elevation: (elevation !== null && isNaN(elevation)) ? null : elevation
           };
-        });
+        })
+        .filter(d => d.station); // ทิ้งแถวที่ไม่มีชื่อสถานี (ข้อมูลเสีย)
 
-        setAllData(parsedData);
-      } catch (err) {
-        console.error(err);
-        setError('เกิดข้อผิดพลาดในการโหลดข้อมูลไฟล์รูปตัด');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCSV();
+      setAllData(parsedData);
+    } catch (err) {
+      console.error(err);
+      setError('เกิดข้อผิดพลาดในการโหลดข้อมูลไฟล์รูปตัด');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCSV();
+  }, [fetchCSV]);
 
   const stations = useMemo(() => {
     return [...new Set(allData.map(d => d.station).filter(Boolean))];
@@ -119,11 +206,16 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
     if (stations[clamped]) setSelectedStation(stations[clamped]);
   };
 
-  const handlePrevStation = () => { setIsPlaying(false); goToIndex(selectedIndex - 1); };
-  const handleNextStation = () => { setIsPlaying(false); goToIndex(selectedIndex + 1); };
-  const handleSliderChange = (idx) => { setIsPlaying(false); goToIndex(idx); };
-  const handleDropdownChange = (station) => {
+  const stopAutoPlayAndDrag = () => {
     setIsPlaying(false);
+    setDragInfo(null);
+  };
+
+  const handlePrevStation = () => { stopAutoPlayAndDrag(); goToIndex(selectedIndex - 1); };
+  const handleNextStation = () => { stopAutoPlayAndDrag(); goToIndex(selectedIndex + 1); };
+  const handleSliderChange = (idx) => { stopAutoPlayAndDrag(); goToIndex(idx); };
+  const handleDropdownChange = (station) => {
+    stopAutoPlayAndDrag();
     const idx = stations.indexOf(station);
     if (idx >= 0) goToIndex(idx);
   };
@@ -140,17 +232,16 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
     return () => clearInterval(timer);
   }, [isPlaying, stations, setSelectedStation]);
 
-  const toggleAutoPlay = () => setIsPlaying(v => !v);
+  // หยุด auto-play อัตโนมัติถ้ามีการเริ่มลากปรับความสูงระหว่างที่กำลังเล่นอยู่
+  const toggleAutoPlay = () => {
+    setDragInfo(null);
+    setIsPlaying(v => !v);
+  };
 
+  // กรองเฉพาะระยะที่เป็นทวีคูณของ 25 (0, 25, 50, 75...) ทำให้ Brush เลื่อนได้ทีละ 25 อัตโนมัติ
   const allowedDistances = useMemo(() => {
     const arr = [];
     for (let d = X_AXIS_MIN; d <= X_AXIS_MAX; d += X_AXIS_STEP) arr.push(d);
-    return arr;
-  }, []);
-
-  const customTicks = useMemo(() => {
-    const arr = [];
-    for (let d = X_AXIS_MIN; d <= X_AXIS_MAX; d += X_AXIS_TICK_STEP) arr.push(d);
     return arr;
   }, []);
 
@@ -160,7 +251,6 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
     return arr;
   }, []);
 
-  // สร้าง chartData โดยคำนึงถึงค่าที่ปรับใหม่ (adjustedData) ด้วย
   const chartData = useMemo(() => {
     const filtered = allData.filter(d => d.station === selectedStation);
     const sortedData = filtered.sort((a, b) => a.distance - b.distance);
@@ -168,11 +258,11 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
     const mappedData = sortedData.map(d => {
       const overrideElev = adjustedData[d.station]?.[d.distance];
       const finalElev = overrideElev !== undefined ? overrideElev : d.elevation;
-      const hasElevation = finalElev !== null && !isNaN(finalElev);
+      const hasElevation = finalElev !== null && finalElev !== undefined && !isNaN(finalElev);
 
       return {
         ...d,
-        originalElevation: d.elevation, // เก็บค่าดั้งเดิมไว้โชว์เทียบ
+        originalElevation: d.elevation,
         elevation: hasElevation ? finalElev : null,
         waterLevel: -1.0
       };
@@ -181,16 +271,16 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
     return mappedData.filter(d => allowedDistances.includes(Math.round(d.distance)));
   }, [allData, selectedStation, allowedDistances, adjustedData]);
 
-  // === ฟังก์ชันดาวน์โหลดไฟล์ CSV สำหรับค่าที่แก้ไขแล้ว ===
   const downloadCSV = () => {
     let csvContent = "Station,Distance,Elevation\n";
     allData.forEach(d => {
       const adjustedElev = adjustedData[d.station]?.[d.distance];
       const finalElev = adjustedElev !== undefined ? adjustedElev : d.elevation;
-      const elevStr = (finalElev !== null && finalElev !== undefined) ? finalElev.toFixed(2) : '';
-      csvContent += `${d.station},${d.distance},${elevStr}\n`;
+      const elevStr = (finalElev !== null && finalElev !== undefined && !isNaN(finalElev)) ? finalElev.toFixed(2) : '';
+      // ใส่ quote ครอบชื่อสถานีกันกรณีมี comma ปนอยู่ในชื่อ
+      csvContent += `"${(d.station ?? '').replace(/"/g, '""')}",${d.distance},${elevStr}\n`;
     });
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -199,53 +289,74 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
-  // === ระบบลากเปลี่ยนความสูง (Drag & Drop) ===
+  // ---- ลากปรับระดับความสูง: คำนวณ pixel-per-unit จากความสูงจริงของกราฟบนจอ ----
+  // ป้องกันปัญหาลากไม่ตรง scale เมื่อขนาดหน้าจอ/กราฟเปลี่ยน
+  const getPixelsPerUnit = () => {
+    const el = chartContainerRef.current;
+    const chartPixelHeight = el ? el.clientHeight : 300;
+    // เผื่อระยะขอบบน/ล่างของ AreaChart (margin top 10 + bottom 20 + แกน X ~70px)
+    const plotAreaHeight = Math.max(chartPixelHeight - 100, 50);
+    const valueRange = Y_AXIS_MAX - Y_AXIS_MIN;
+    return plotAreaHeight / valueRange; // pixels ต่อ 1 หน่วยเมตร
+  };
+
   const handleMouseDown = (state, event) => {
     if (!isLoggedIn || !state || state.activeLabel === undefined) return;
-    
+    // ไม่ให้เริ่มลากถ้ากำลัง auto-play อยู่ (กันสถานีเปลี่ยนกลางอากาศระหว่างลาก)
+    if (isPlaying) return;
+
     const dist = Number(state.activeLabel);
-    if (dist % 25 !== 0) return; // บังคับให้แก้ได้เฉพาะทุกระยะ 25 ม.
+    if (dist % 25 !== 0) return;
 
     const activePoint = chartData.find(d => d.distance === dist);
-    if (!activePoint || activePoint.originalElevation === null) return;
+    if (!activePoint || activePoint.originalElevation === null || activePoint.originalElevation === undefined || isNaN(activePoint.originalElevation)) return;
 
     setDragInfo({
       distance: dist,
       originalElev: activePoint.originalElevation,
       currentElev: activePoint.elevation,
-      startY: event.clientY // รับค่าจุด Y ที่เมาส์เริ่มคลิก
+      startY: event.clientY
     });
   };
 
   useEffect(() => {
     const handleGlobalMouseMove = (e) => {
       if (!dragInfo) return;
-      
+
+      const pixelsPerUnit = getPixelsPerUnit();
       const deltaY = e.clientY - dragInfo.startY;
-      // ความเร็ว/ความไวของการเลื่อน (35 pixel จะประมาณเท่ากับ 1 เมตร ปรับเพิ่ม/ลดได้)
-      let newElev = dragInfo.currentElev - (deltaY / 100); 
-      
-      // ล็อกเพดานไม่ให้ลากทะลุกราฟ
+      // ลากขึ้น (deltaY ติดลบ) = ค่าความสูงเพิ่มขึ้น จึงใช้เครื่องหมายลบ
+      let newElev = dragInfo.currentElev - (deltaY / pixelsPerUnit);
       newElev = Math.max(Y_AXIS_MIN, Math.min(Y_AXIS_MAX, newElev));
 
-      setAdjustedData(prev => ({
-        ...prev,
-        [selectedStation]: {
-          ...(prev[selectedStation] || {}),
-          [dragInfo.distance]: newElev
-        }
-      }));
+      setAdjustedData(prev => {
+        const next = {
+          ...prev,
+          [selectedStation]: {
+            ...(prev[selectedStation] || {}),
+            [dragInfo.distance]: newElev
+          }
+        };
+        persistAdjustments(next);
+        return next;
+      });
 
-      setDragInfo(prev => ({
+      setDragInfo(prev => (prev ? {
         ...prev,
         currentElev: newElev,
         startY: e.clientY
-      }));
+      } : prev));
     };
 
-    const handleGlobalMouseUp = () => setDragInfo(null);
+    const handleGlobalMouseUp = () => {
+      setDragInfo(null);
+      setSaveStatus('saved');
+      if (saveStatusTimerRef.current) clearTimeout(saveStatusTimerRef.current);
+      saveStatusTimerRef.current = setTimeout(() => setSaveStatus('idle'), 1500);
+    };
 
     if (dragInfo) {
       window.addEventListener('mousemove', handleGlobalMouseMove);
@@ -257,17 +368,22 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
     };
   }, [dragInfo, selectedStation]);
 
+  useEffect(() => {
+    return () => {
+      if (saveStatusTimerRef.current) clearTimeout(saveStatusTimerRef.current);
+    };
+  }, []);
+
   const CustomTooltip = ({ active, payload, label }) => {
-    // ซ่อน Tooltip เก่าขณะกำลังลาก เพื่อไม่ให้บัง Label ใหม่
     if (active && payload && payload.length && !dragInfo) {
       const sandPoint = payload.find(p => p.dataKey === 'elevation');
-      if (!sandPoint) return null;
+      if (!sandPoint || sandPoint.value === null || sandPoint.value === undefined) return null;
 
       return (
-        <div style={{ 
+        <div style={{
           background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(229, 231, 235, 0.5)', padding: '12px 16px', 
-          borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' 
+          border: '1px solid rgba(229, 231, 235, 0.5)', padding: '12px 16px',
+          borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
         }}>
           <p style={{ margin: '0 0 6px 0', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>ระยะทาง: {label} ม.</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -288,16 +404,14 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
   };
 
   return (
-    <div style={{ 
+    <div style={{
       flex: 1, display: 'flex', flexDirection: 'column',
       background: '#ffffff', borderRadius: '24px', padding: '24px 32px',
       boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)', fontFamily: 'Sarabun-Medium, sans-serif',
       position: 'relative',
-      // เปลี่ยน Cursor เมาส์เมื่อเข้าสู่ระบบ
-      cursor: isLoggedIn ? (dragInfo ? 'grabbing' : 'pointer') : 'default' 
+      cursor: isLoggedIn ? (dragInfo ? 'grabbing' : 'pointer') : 'default'
     }}>
-      
-      {/* Label เรียลไทม์ ขณะลากปรับค่า */}
+
       {dragInfo && (
         <div style={{
           position: 'absolute', top: 90, left: '50%', transform: 'translateX(-50%)',
@@ -311,6 +425,17 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
           <span>📉 ค่าเดิม: <span style={{ color: '#94a3b8' }}>{dragInfo.originalElev.toFixed(2)} ม.</span></span>
           <span style={{ color: '#475569' }}>|</span>
           <span>📈 ค่าใหม่: <span style={{ color: '#fbbf24', fontSize: '16px' }}>{dragInfo.currentElev.toFixed(2)} ม.</span></span>
+        </div>
+      )}
+
+      {saveStatus === 'saved' && !dragInfo && (
+        <div style={{
+          position: 'absolute', top: 90, left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(16, 185, 129, 0.95)', color: 'white', padding: '8px 20px',
+          borderRadius: '30px', zIndex: 100, fontWeight: 600, fontSize: '13px',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+        }}>
+          ✓ บันทึกการปรับแก้แล้ว
         </div>
       )}
 
@@ -332,10 +457,9 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
           </p>
         </div>
 
-        {/* ปุ่มดาวน์โหลดโผล่มาเฉพาะตอน Log in */}
         {isLoggedIn && (
           <button onClick={downloadCSV} style={{
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             color: 'white', border: 'none', padding: '10px 18px',
             borderRadius: '20px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
             boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)', transition: 'all 0.2s', fontFamily: 'inherit', fontSize: '14px'
@@ -354,10 +478,10 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
         <input type="range" min={0} max={Math.max(stations.length - 1, 0)} step={1} value={selectedIndex} onChange={(e) => handleSliderChange(Number(e.target.value))} style={{ flex: 1, accentColor: '#c49a6c', cursor: 'pointer' }} />
         <button onClick={handleNextStation} disabled={selectedIndex >= stations.length - 1} style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none', background: selectedIndex >= stations.length - 1 ? '#e2e8f0' : '#ffffff', color: selectedIndex >= stations.length - 1 ? '#94a3b8' : '#334155', boxShadow: selectedIndex >= stations.length - 1 ? 'none' : '0 1px 3px rgba(0,0,0,0.08)', cursor: selectedIndex >= stations.length - 1 ? 'default' : 'pointer', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
         <button onClick={toggleAutoPlay} style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none', background: isPlaying ? '#c49a6c' : '#ffffff', color: isPlaying ? '#ffffff' : '#334155', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{isPlaying ? '⏸' : '▶'}</button>
-        
+
         <select value={selectedStation} onChange={(e) => handleDropdownChange(e.target.value)} style={{ padding: '8px 14px', border: 'none', background: '#ffffff', borderRadius: '20px', color: '#334155', fontWeight: 700, outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0, minWidth: '90px' }}>
-          {stations.map(station => (
-            <option key={station} value={station}>{station}</option>
+          {stations.map((station, idx) => (
+            <option key={`${station}-${idx}`} value={station}>{station}</option>
           ))}
         </select>
       </div>
@@ -366,9 +490,16 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
         ระดับความสูงของรูปตัด
       </h4>
 
-      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+      <div ref={chartContainerRef} style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         {loading && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 10, borderRadius: '12px' }}><div style={{ color: '#c49a6c', fontWeight: 600, fontSize: '15px' }}>กำลังโหลดข้อมูลรูปตัด...</div></div>}
-        {error && !loading && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', zIndex: 10, textAlign: 'center', background: '#fef2f2', borderRadius: '16px', border: '1px solid #fee2e2' }}><p style={{ fontWeight: 600 }}>{error}</p></div>}
+        {error && !loading && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', justifyContent: 'center', color: '#ef4444', zIndex: 10, textAlign: 'center', background: '#fef2f2', borderRadius: '16px', border: '1px solid #fee2e2' }}>
+            <p style={{ fontWeight: 600, margin: 0 }}>{error}</p>
+            <button onClick={fetchCSV} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '16px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              ลองใหม่อีกครั้ง
+            </button>
+          </div>
+        )}
         {!loading && !error && chartData.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', zIndex: 10, background: '#f8fafc', borderRadius: '16px' }}>ไม่พบข้อมูลสำหรับสถานีนี้</div>}
 
         {chartData.length > 0 && (
@@ -376,7 +507,6 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
             <AreaChart
               data={chartData}
               margin={{ top: 10, right: 20, left: 0, bottom: 20 }}
-              // เมื่อคลิกเมาส์บน AreaChart จะส่ง event ไปให้ handleMouseDown
               onMouseDown={handleMouseDown}
               style={{ outline: 'none' }}
             >
@@ -392,14 +522,37 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
               </defs>
 
               <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
-              
-              <XAxis dataKey="distance" type="number" domain={[X_AXIS_MIN, X_AXIS_MAX]} ticks={customTicks} axisLine={true} tickLine={true} tickFormatter={(val) => (val % 100 === 0 ? val : '')} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} dy={10} label={{ value: 'ระยะทาง (ม.)', position: 'bottom', offset: 0, fontSize: 14, fill: '#475569', fontWeight: 600 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} domain={[Y_AXIS_MIN, Y_AXIS_MAX]} ticks={yAxisTicks} label={{ value: 'ความสูง (ม.)', angle: -90, position: 'insideLeft', fontSize: 14, fill: '#475569', fontWeight: 600 }} />
-              
+
+              <XAxis
+                dataKey="distance"
+                axisLine={true}
+                tickLine={true}
+                tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
+                height={70}
+                dy={10}
+                label={{
+                  value: 'ระยะทาง (ม.)',
+                  position: 'insideBottom',
+                  offset: 15,
+                  fontSize: 14,
+                  fill: '#475569',
+                  fontWeight: 600
+                }}
+              />
+
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
+                domain={[Y_AXIS_MIN, Y_AXIS_MAX]}
+                ticks={yAxisTicks}
+                label={{ value: 'ความสูง (ม.)', angle: -90, position: 'insideLeft', fontSize: 14, fill: '#475569', fontWeight: 600 }}
+              />
+
               <Tooltip content={<CustomTooltip />} cursor={dragInfo ? false : { stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} />
-              
-              <Legend verticalAlign="bottom" height={36} content={() => (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', fontSize: '13px', color: '#475569', fontWeight: 'bold', gap: '20px' }}>
+
+              <Legend verticalAlign="bottom" height={40} content={() => (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px', fontSize: '13px', color: '#475569', fontWeight: 'bold', gap: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: '#dcb788', marginRight: '6px' }}></span>ระดับพื้น</div>
                   <div style={{ display: 'flex', alignItems: 'center' }}><svg width="20" height="12" style={{ marginRight: '6px' }}><path d="M0 6 Q 5 2, 10 6 T 20 6" fill="none" stroke="#0284c7" strokeWidth="2" /></svg>น้ำทะเล</div>
                 </div>
@@ -407,10 +560,22 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
 
               <Area type="natural" dataKey="waterLevel" stroke="none" fillOpacity={1} fill="url(#colorWater)" baseValue="dataMin" activeDot={false} isAnimationActive={false} />
               <Area type="natural" dataKey="waterLevel" stroke="#0284c7" strokeWidth={2} fill="none" baseValue="dataMin" activeDot={false} isAnimationActive={false} shape={<SingleWavyWater />} />
-              
-              {/* ปิด Animation เมื่อมีการ Log in เพื่อให้การลาก (Drag) ลื่นไหลและไม่เด้ง */}
+
               <Area type="natural" dataKey="elevation" stroke="none" fill="#ffffff" fillOpacity={1} baseValue="dataMin" connectNulls={false} activeDot={false} isAnimationActive={!isLoggedIn} animationDuration={1500} animationEasing="ease-out" />
               <Area type="natural" dataKey="elevation" stroke="#c49a6c" strokeWidth={4} fillOpacity={1} fill="url(#colorElevation)" baseValue="dataMin" connectNulls={false} activeDot={{ r: 6, fill: '#ffffff', stroke: '#c49a6c', strokeWidth: 4, style: { outline: 'none' } }} isAnimationActive={!isLoggedIn} animationDuration={1500} animationEasing="ease-out" />
+
+              <Brush
+                key={selectedStation}
+                dataKey="distance"
+                height={28}
+                stroke="#c49a6c"
+                fill="#f8fafc"
+                travellerWidth={14}
+                tickFormatter={(val) => `${val} ม.`}
+                startIndex={brushIndex.startIndex}
+                endIndex={brushIndex.endIndex}
+                onChange={(newIndex) => setBrushIndex(newIndex)}
+              />
             </AreaChart>
           </ResponsiveContainer>
         )}
