@@ -2,7 +2,7 @@
  * App.js — คอมโพเนนต์หลักของแอปพลิเคชัน
  */
 
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, WMSTileLayer, GeoJSON, useMap, Marker, Tooltip } from 'react-leaflet';
 import { MapFeatureCircles } from './MapFeatureCircles';
 import L from 'leaflet';
@@ -68,14 +68,6 @@ const waveIcon = new L.Icon({
   popupAnchor: [0, -16]
 });
 
-// ไอคอนสำหรับตำแหน่งปัจจุบันของผู้ใช้
-const userLocationIcon = L.divIcon({
-  className: 'user-location-icon',
-  html: `<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
-  iconSize: [22, 22],
-  iconAnchor: [11, 11]
-});
-
 function getFeatureViewTarget(feature) {
   if (!feature) return null;
   try {
@@ -124,7 +116,6 @@ function LayerPaneSetup() {
 }
 
 function App() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState('map'); // 'map' | 'data'
   const [dashboardCollapsed, setDashboardCollapsed] = useState(false);
@@ -151,8 +142,6 @@ function App() {
   const crosslineLayerRef = useRef(null);
   const selectedStationRef = useRef(selectedStation);
   
-  const [userLocation, setUserLocation] = useState(null);
-
   const [basemapId, setBasemapId] = useState(() => localStorage.getItem('basemap') || 'osm');
   const [basemapOpen, setBasemapOpen] = useState(false);
   const basemapManualRef = useRef(false);
@@ -203,41 +192,6 @@ function App() {
         setVisitorCount(1297); 
       });
   }, []);
-
-  const handleLocateUser = () => {
-    if (!navigator.geolocation) {
-      alert('เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง');
-      return;
-    }
-    
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const latlng = [latitude, longitude];
-        
-        setUserLocation(latlng);
-        
-        if (mapRef.current) {
-          mapRef.current.flyTo(latlng, 15, { animate: true, duration: 1.5 });
-        }
-      },
-      (error) => {
-        console.error(error);
-        if (error.code === 1) {
-          alert('กรุณาอนุญาตการเข้าถึงตำแหน่ง (Location) ในเบราว์เซอร์ของคุณ');
-        } else if (error.code === 3) {
-          alert('ใช้เวลาค้นหาตำแหน่งนานเกินไป (Timeout) ลองใหม่อีกครั้งครับ');
-        } else {
-          alert('ไม่สามารถค้นหาตำแหน่งปัจจุบันได้ในขณะนี้');
-        }
-      },
-      { 
-        enableHighAccuracy: false, 
-        timeout: 10000,            
-        maximumAge: 60000          
-      } 
-    );
-  };
 
   const showHighlight = (latLng) => {
     const map = mapRef.current;
@@ -295,7 +249,7 @@ function App() {
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [dashboardCollapsed, sidebarCollapsed, mobileTab]);
+  }, [dashboardCollapsed, mobileTab]);
 
   useEffect(() => {
     if (!searchValue) setFilteredPoints(points);
@@ -467,7 +421,7 @@ function App() {
     [crosslineFeatures]
   );
 
-  const handleZoomToFeature = feature => {
+  const handleZoomToFeature = useCallback(feature => {
     mapRef.current?.closePopup();
     const target = getFeatureViewTarget(feature);
     if (!target || !mapRef.current) return;
@@ -484,9 +438,9 @@ function App() {
     const targetZoom = Math.max(currentZoom, 15);
     const isSame = currentCenter && currentCenter.lat === target.center.lat && currentCenter.lng === target.center.lng && currentZoom === targetZoom;
     if (!isSame) mapRef.current.setView(target.center, targetZoom, { animate: true });
-  };
+  }, []);
 
-  const zoomToActiveExtent = () => {
+  const zoomToActiveExtent = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
 
@@ -538,7 +492,7 @@ function App() {
       ]);
       map.fitBounds(defaultBounds, { padding: [20, 20] });
     }, 150);
-  };
+  }, [selectedFeature, handleZoomToFeature, dashboardTab, crosslineFeatures, filteredPoints]);
 
   const prevMobileTabRef = useRef(mobileTab);
   useEffect(() => {
@@ -546,7 +500,7 @@ function App() {
       zoomToActiveExtent();
     }
     prevMobileTabRef.current = mobileTab;
-  }, [mobileTab]);
+  }, [mobileTab, zoomToActiveExtent]);
 
   useEffect(() => {
     if (!selectedFeature) return;
@@ -802,16 +756,6 @@ function App() {
               />
 
               {isBacteriaLayerActive && <BacteriaLegend />}
-
-              {userLocation && (
-                <Marker position={userLocation} icon={userLocationIcon}>
-                  <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-                    <div style={{ fontFamily: 'Sarabun-Medium, sans-serif', fontSize: '13px' }}>
-                      <strong>ตำแหน่งปัจจุบันของคุณ</strong>
-                    </div>
-                  </Tooltip>
-                </Marker>
-              )}
 
               {wavePoints.map(feature => (
                 <Marker

@@ -13,18 +13,6 @@ const CheckIcon = () => (
   </svg>
 );
 
-const CollapseIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const ExpandIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
 const HeatIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
     <path d="M10 2.5C10 2.5 5.5 6 5.5 11a4.5 4.5 0 0 0 9 0c0-2-1.2-3.6-1.2-3.6s-.3 1.4-1.3 1.9c.4-1.8-.3-4.3-2-6.7Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" fill="none"/>
@@ -39,15 +27,7 @@ const WindIcon = () => (
   </svg>
 );
 
-const InfoIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-    <circle cx="6.5" cy="6.5" r="6" stroke="currentColor" strokeWidth="1.2" fill="none" />
-    <circle cx="6.5" cy="3.9" r="0.75" fill="currentColor" />
-    <path d="M6.5 5.8V9.4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-  </svg>
-);
-
-const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, collapsed, onCollapseChange, orthoOpacities, onOrthoOpacityChange }) => {
+const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, collapsed, orthoOpacities, onOrthoOpacityChange }) => {
   const sidebarContentRef = React.useRef();
 
   const smoothScroll = (target, delta) => {
@@ -74,10 +54,6 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
     if (sidebarContentRef.current) {
       smoothScroll(sidebarContentRef.current, e.deltaY);
     }
-  };
-
-  const toggleSidebar = () => {
-    if (onCollapseChange) onCollapseChange(!collapsed);
   };
 
   const flatLayers = Array.isArray(layers)
