@@ -88,18 +88,6 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
 
   const [selectedLayerIds, setSelectedLayerIds] = useState(flatLayers.length > 0 ? [flatLayers[0].id] : []);
   const [showWaterInfoPopup, setShowWaterInfoPopup] = useState(false);
-  const waterInfoShownRef = React.useRef(false);
-
-  const openWaterInfoPopup = () => {
-    setShowWaterInfoPopup(true);
-    waterInfoShownRef.current = true;
-  };
-
-  React.useEffect(() => {
-    if (!waterInfoShownRef.current) {
-      openWaterInfoPopup();
-    }
-  }, []);
 
   React.useEffect(() => {
     if (onLayerChange) onLayerChange(selectedLayerIds);
@@ -108,10 +96,6 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
   const handleLayerToggle = (layer, categoryName) => {
     setSelectedLayerIds(prevIds => {
       if (categoryName === 'คุณภาพน้ำ') {
-        if (!waterInfoShownRef.current) {
-          openWaterInfoPopup();
-        }
-
         const waterQualityCategory = layers.find(cat => cat.category === 'คุณภาพน้ำ');
         const waterQualityIds = waterQualityCategory ? waterQualityCategory.items.map(item => item.id) : [];
 
@@ -198,14 +182,6 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
         </div>
       )}
 
-      <button
-        className="sidebar-toggle-btn"
-        onClick={toggleSidebar}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        {collapsed ? <ExpandIcon /> : <><CollapseIcon /> {!collapsed && <span>ย่อเมนู</span>}</>}
-      </button>
-
       <div
         className="sidebar-content"
         ref={sidebarContentRef}
@@ -219,22 +195,6 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
                   <p className="sidebar-header-title" style={{ fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 600, margin: 0 }}>
                     {cat.category}
                   </p>
-                  {cat.category === 'คุณภาพน้ำ' && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); openWaterInfoPopup(); }}
-                      title="ข้อมูลเพิ่มเติมเกี่ยวกับคุณภาพน้ำ"
-                      aria-label="ข้อมูลเพิ่มเติมเกี่ยวกับคุณภาพน้ำ"
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        width: 16, height: 16, borderRadius: '50%',
-                        border: '1px solid var(--c-text-secondary)', background: 'transparent',
-                        color: 'var(--c-text-secondary)', cursor: 'pointer', padding: 0, flexShrink: 0,
-                      }}
-                    >
-                      <InfoIcon />
-                    </button>
-                  )}
                 </div>
               )}
 

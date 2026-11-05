@@ -120,23 +120,24 @@ const DashboardTable = ({ points, onSelectFeature }) => {
 
       {/* === ส่วนหัวตาราง === */}
       <div style={{
-        height: 60, minHeight: 60, fontWeight: 700, fontSize: 16, color: 'var(--c-text)',
-        padding: '0 20px', display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'space-between',
+        minHeight: 56, fontWeight: 700, fontSize: 16, color: 'var(--c-text)',
+        padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'space-between',
+        flexWrap: 'wrap',
         borderBottom: '1px solid var(--c-border)', background: 'linear-gradient(135deg, var(--c-bg-secondary) 0%, var(--c-bg-primary) 100%)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, whiteSpace: 'nowrap' }}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <rect x="1" y="1" width="18" height="18" rx="3" stroke="#3b82f6" strokeWidth="1.5" fill="none"/>
             <line x1="1" y1="7" x2="19" y2="7" stroke="#3b82f6" strokeWidth="1.2"/>
             <line x1="7" y1="7" x2="7" y2="19" stroke="#3b82f6" strokeWidth="1.2"/>
           </svg>
-          <span style={{ letterSpacing: 0.3 }}>ข้อมูลชายหาดชลาทัศน์</span>
+          <span style={{ letterSpacing: 0.3, whiteSpace: 'nowrap' }}>ข้อมูลชายหาดชลาทัศน์</span>
           <span style={{
             background: 'var(--c-accent-bg)', color: 'var(--c-accent-light)', fontSize: 11,
-            fontWeight: 600, padding: '2px 8px', borderRadius: 6, marginLeft: 4,
+            fontWeight: 600, padding: '2px 8px', borderRadius: 6, marginLeft: 2, whiteSpace: 'nowrap'
           }}>{totalRows} รายการ</span>
         </div>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: '1 1 160px', maxWidth: 280 }}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, pointerEvents: 'none' }}>
             <circle cx="6.5" cy="6.5" r="5" stroke="#64748b" strokeWidth="1.5" fill="none"/>
             <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round"/>
@@ -149,7 +150,7 @@ const DashboardTable = ({ points, onSelectFeature }) => {
             style={{
               fontSize: 13, padding: '7px 12px 7px 32px', borderRadius: 8, border: '1px solid var(--c-border-input)',
               background: 'var(--c-bg-input)', color: 'var(--c-text)', outline: 'none', fontFamily: 'Sarabun-Medium',
-              minWidth: 180, transition: 'border-color 0.2s, background 0.2s',
+              width: '100%', boxSizing: 'border-box', transition: 'border-color 0.2s, background 0.2s',
             }}
             onFocus={e => { e.target.style.borderColor = 'var(--c-accent-border)'; e.target.style.background = 'var(--c-bg-input-focus)'; }}
             onBlur={e => { e.target.style.borderColor = 'var(--c-border-input)'; e.target.style.background = 'var(--c-bg-input)'; }}
@@ -159,64 +160,83 @@ const DashboardTable = ({ points, onSelectFeature }) => {
 
       {/* === พื้นที่เนื้อหาตาราง === */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        <div className="table-scroll" style={{ flex: 1, overflowY: 'auto' }}>
-          <table style={{ border: 'none', width: '100%', borderCollapse: 'collapse', background: 'transparent', tableLayout: 'fixed' }}>
+        <div className="table-scroll" style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+          <table style={{ border: 'none', width: '100%', minWidth: 1400, borderCollapse: 'collapse', background: 'transparent', tableLayout: 'fixed' }}>
             <thead>
-              <tr style={{ height: 44, fontSize: 12, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: 1 }}>
-                <th style={{ padding: '8px 12px', textAlign: 'left', width: 120, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>วันที่เก็บตัวอย่าง</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 80, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>เวลา</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 150, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>บริเวณพื้นที่เก็บตัวอย่าง</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 100, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>สีของน้ำ</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 80, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>กลิ่น</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 150, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>ตะกอน</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>ค่าความเป็นกรด-ด่าง (pH)</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>คราบน้ำมัน</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>E.Coli (โคโลนีสีฟ้า) CFU/g</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>Coliform (โคโลนีสีม่วง) CFU/g</th>
-                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600 }}>สภาพอากาศ</th>
+              <tr style={{ height: 44, fontSize: 12, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
+                <th style={{ padding: '8px 12px', textAlign: 'left', width: 130, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>วันที่เก็บตัวอย่าง</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 90, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>เวลา</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 300, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>บริเวณพื้นที่เก็บตัวอย่าง</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 100, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>สีของน้ำ</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 90, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>กลิ่น</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 120, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>ตะกอน</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 160, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>ค่าความเป็นกรด-ด่าง (pH)</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 120, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>คราบน้ำมัน</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 170, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>E.Coli (CFU/g)</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 170, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>Coliform (CFU/g)</th>
+                <th style={{ padding: '8px 12px', textAlign: 'center', width: 200, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>สภาพอากาศ</th>
               </tr>
             </thead>
-            <tbody>
-              {pageRows.length === 0 ? (
-                <tr>
-                  <td colSpan={11} style={{ textAlign: 'center', padding: 40, color: 'var(--c-text-muted)', fontSize: 14 }}>
-                    {searchValue ? 'ไม่พบข้อมูลที่ค้นหา' : 'เลือกชั้นข้อมูลเพื่อแสดงรายการ'}
-                  </td>
-                </tr>
-              ) : pageRows.map((f, idx) => (
-                <tr
-                  key={startIdx + idx}
-                  className="dashboard-table-row"
-                  onClick={() => onSelectFeature?.(f)}
-                  style={{ background: 'transparent', height: 52, borderBottom: '1px solid var(--c-border-subtle)' }}
-                >
-                  {/* คอลัมน์: วันที่เก็บตัวอย่าง (แปลงฟอร์แมตแล้ว) */}
-                  <td style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--c-text)', fontSize: 13, fontWeight: 500 }}>
-                    {formatThaiDate(f.properties?.date)}
-                  </td>
-                  {/* คอลัมน์: เวลา (แปลงฟอร์แมตแล้ว ไม่ดึงรูปภาพปศุสัตว์) */}
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>
-                    {formatTime(f.properties?.time)}
-                  </td>
-                  {/* คอลัมน์อื่นๆ */}
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.location || '-'}</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.สีของน้ำ || '-'}</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.กลิ่น || '-'}</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                    <span style={{
-                      background: 'var(--c-accent-badge-bg)', color: 'var(--c-accent-text)',
-                      padding: '2px 10px', borderRadius: 6, fontSize: 13, fontWeight: 600,
-                    }}>{f.properties?.ตะกอน || '-'}</span>
-                  </td>
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['ค่าความเป็นกรด-ด่าง'] || '-'}</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['คราบน้ำมัน'] || '-'}</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['E.Coli'] ?? f.properties?.['E.coli'] ?? f.properties?.['ecoli'] ?? '-'}</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['Coliform'] ?? f.properties?.['coliform'] ?? '-'}</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13 }}>{f.properties?.['หมายเหตุ'] || '-'}</td>
-                </tr>
+            {pageRows.length > 0 && (
+              <tbody>
+                {pageRows.map((f, idx) => (
+                  <tr
+                    key={startIdx + idx}
+                    className="dashboard-table-row"
+                    onClick={() => onSelectFeature?.(f)}
+                    style={{ background: 'transparent', height: 52, borderBottom: '1px solid var(--c-border-subtle)' }}
+                  >
+                    {/* คอลัมน์: วันที่เก็บตัวอย่าง (แปลงฟอร์แมตแล้ว) */}
+                    <td style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--c-text)', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
+                      {formatThaiDate(f.properties?.date)}
+                    </td>
+                    {/* คอลัมน์: เวลา */}
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13, whiteSpace: 'nowrap' }}>
+                      {formatTime(f.properties?.time)}
+                    </td>
+                    {/* คอลัมน์อื่นๆ */}
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13, whiteSpace: 'nowrap' }}>{f.properties?.location || '-'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13, whiteSpace: 'nowrap' }}>{f.properties?.สีของน้ำ || '-'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13, whiteSpace: 'nowrap' }}>{f.properties?.กลิ่น || '-'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                      <span style={{
+                        background: 'var(--c-accent-badge-bg)', color: 'var(--c-accent-text)',
+                        padding: '2px 10px', borderRadius: 6, fontSize: 13, fontWeight: 600,
+                      }}>{f.properties?.ตะกอน || '-'}</span>
+                    </td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13, whiteSpace: 'nowrap' }}>{f.properties?.['ค่าความเป็นกรด-ด่าง'] || '-'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13, whiteSpace: 'nowrap' }}>{f.properties?.['คราบน้ำมัน'] || '-'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13, whiteSpace: 'nowrap' }}>{f.properties?.['E.Coli'] ?? f.properties?.['E.coli'] ?? f.properties?.['ecoli'] ?? '-'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13, whiteSpace: 'nowrap' }}>{f.properties?.['Coliform'] ?? f.properties?.['coliform'] ?? '-'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--c-text-secondary)', fontSize: 13, whiteSpace: 'nowrap' }}>{f.properties?.['หมายเหตุ'] || '-'}</td>
+                  </tr>
                 ))}
-            </tbody>
+              </tbody>
+            )}
           </table>
+
+          {/* เมื่อไม่มีข้อมูล ให้แสดงข้อความอยู่ตรงกลางจอแบบสมบูรณ์ */}
+          {pageRows.length === 0 && (
+            <div style={{
+              position: 'sticky',
+              left: 0,
+              width: '100%',
+              minHeight: 260,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              color: 'var(--c-text-muted)',
+              padding: '40px 16px',
+              boxSizing: 'border-box'
+            }}>
+              <span style={{ fontSize: 32 }}>📋</span>
+              <span style={{ fontSize: 14, fontWeight: 500, textAlign: 'center' }}>
+                {searchValue ? 'ไม่พบข้อมูลที่ค้นหา' : 'เลือกชั้นข้อมูลเพื่อแสดงรายการ'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* === แถบ Pagination === */}

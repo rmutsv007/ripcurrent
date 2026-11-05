@@ -23,19 +23,28 @@ import './MapOverrides.css';
 import './sarabun-font.css';
 import WaterQualityDashboard from './WaterQualityDashboard';
 import './ThemeToggle.css'; // นำเข้าสไตล์สำหรับปุ่ม Day/Night Toggle แบบคลิปเป๊ะๆ
+import './ResponsiveLayout.css'; // สไตล์ Responsive รองรับมือถือและแท็บเล็ต
 
 // นำเข้า Modal กราฟคลื่นทะเล
 import WaveGraphModal from './WaveGraphModal';
 // นำเข้า กราฟ Cross Section
 import CrossSectionGraph from './CrossSectionGraph';
 
+const CARTO_KEY = process.env.REACT_APP_CARTO_API_KEY || '';
+const cartoDarkUrl = CARTO_KEY 
+  ? `https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`
+  : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+
+const cartoLightUrl = CARTO_KEY
+  ? `https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`
+  : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+
 const BASEMAPS = [
-  { id: 'osm',        label: 'OpenStreetMap',  url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' },
-  { id: 'carto-dark',  label: 'Dark',           url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png' },
-  { id: 'carto-light', label: 'Light',          url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' },
-  { id: 'carto-voyager', label: 'Voyager',      url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png' },
-  { id: 'esri-satellite', label: 'Satellite',   url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' },
-  { id: 'esri-topo',  label: 'Topo',            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}' },
+  { id: 'osm',            label: 'OSM',   fullLabel: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' },
+  { id: 'carto-dark',     label: 'Dark',  fullLabel: 'Dark',          url: cartoDarkUrl },
+  { id: 'carto-light',    label: 'Light', fullLabel: 'Light',         url: cartoLightUrl },
+  { id: 'esri-satellite', label: 'Sat',   fullLabel: 'Satellite',     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' },
+  { id: 'esri-topo',      label: 'Topo',  fullLabel: 'Topo',          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}' },
 ];
 
 const LONGDO_WEATHER_KEY = process.env.REACT_APP_LONGDO_WEATHER_KEY || '';
@@ -116,6 +125,8 @@ function LayerPaneSetup() {
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState('map'); // 'map' | 'data'
   const [dashboardCollapsed, setDashboardCollapsed] = useState(false);
   const [dashboardTab, setDashboardTab] = useState('table'); 
   const [points, setPoints] = useState([]);
@@ -162,21 +173,34 @@ function App() {
     const firebaseUrl = 'https://hydrogi-default-rtdb.asia-southeast1.firebasedatabase.app/visitorCount.json';
 
     fetch(firebaseUrl)
-      .then(res => res.json())
-      .then(currentCount => {
-        const newCount = currentCount === null ? 819 : currentCount + 1;
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Firebase response status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        const count = typeof data === 'number' && !isNaN(data) ? data : 1297;
         
-        setVisitorCount(newCount);
+        // ตรวจสอบ sessionStorage เพื่อไม่ให้นับซ้ำเมื่อผู้ใช้กด Refresh หน้าจอ
+        const hasCounted = sessionStorage.getItem('counted_visit');
+        if (!hasCounted) {
+          const newCount = count + 1;
+          setVisitorCount(newCount);
+          sessionStorage.setItem('counted_visit', 'true');
 
-        fetch(firebaseUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newCount)
-        });
+          fetch(firebaseUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newCount)
+          }).catch(err => console.error('Update visitorCount error:', err));
+        } else {
+          setVisitorCount(count);
+        }
       })
       .catch(err => {
-        console.error('Database Error:', err);
-        setVisitorCount(819); 
+        console.warn('Visitor counter using fallback:', err.message);
+        setVisitorCount(1297); 
       });
   }, []);
 
@@ -271,7 +295,7 @@ function App() {
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [dashboardCollapsed, sidebarCollapsed]);
+  }, [dashboardCollapsed, sidebarCollapsed, mobileTab]);
 
   useEffect(() => {
     if (!searchValue) setFilteredPoints(points);
@@ -462,6 +486,68 @@ function App() {
     if (!isSame) mapRef.current.setView(target.center, targetZoom, { animate: true });
   };
 
+  const zoomToActiveExtent = () => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    try { map.invalidateSize(); } catch (e) { console.warn(e); }
+
+    setTimeout(() => {
+      // 1. ถ้ามีจุดข้อมูลเดี่ยวที่เลือกดูรายละเอียดอยู่ ให้ซูมไปที่จุดนั้น
+      if (selectedFeature) {
+        handleZoomToFeature(selectedFeature);
+        return;
+      }
+
+      // 2. ถ้ากำลังอยู่ในแท็บ Cross Section และมีเส้นแนวตัด
+      if (dashboardTab === 'crossection' && crosslineFeatures.length > 0) {
+        try {
+          const crossBounds = L.geoJSON({ type: 'FeatureCollection', features: crosslineFeatures }).getBounds();
+          if (crossBounds.isValid()) {
+            map.fitBounds(crossBounds, { padding: [30, 30], maxZoom: 18 });
+            return;
+          }
+        } catch (e) {
+          console.warn('Crossline bounds error:', e);
+        }
+      }
+
+      // 3. ถ้ามีจุดข้อมูลคุณภาพน้ำหรือสถานีคลื่นที่เปิดอยู่ ให้คำนวณขอบเขตครอบคลุมทุกจุด
+      if (filteredPoints && filteredPoints.length > 0) {
+        try {
+          const bounds = L.latLngBounds();
+          filteredPoints.forEach(f => {
+            const coords = f.geometry?.coordinates;
+            if (coords && coords.length >= 2) {
+              bounds.extend([coords[1], coords[0]]);
+            }
+          });
+          if (bounds.isValid()) {
+            map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
+            return;
+          }
+        } catch (e) {
+          console.warn('Points bounds error:', e);
+        }
+      }
+
+      // 4. กรณีไม่มีจุดหรือเลเยอร์เปิดอยู่ ให้ซูมขอบเขตแนวชายหาดชลาทัศน์ สงขลา (Default Extent)
+      const defaultBounds = L.latLngBounds([
+        [7.170, 100.598],
+        [7.230, 100.615]
+      ]);
+      map.fitBounds(defaultBounds, { padding: [20, 20] });
+    }, 150);
+  };
+
+  const prevMobileTabRef = useRef(mobileTab);
+  useEffect(() => {
+    if (prevMobileTabRef.current !== 'map' && mobileTab === 'map') {
+      zoomToActiveExtent();
+    }
+    prevMobileTabRef.current = mobileTab;
+  }, [mobileTab]);
+
   useEffect(() => {
     if (!selectedFeature) return;
     const target = getFeatureViewTarget(selectedFeature);
@@ -496,47 +582,32 @@ function App() {
         />
       )}
 
-      <header style={{
-        height: '56px', minHeight: '56px',
-        background: 'linear-gradient(135deg, var(--c-header-start) 0%, var(--c-header-end) 100%)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
-        padding: '0 24px', borderBottom: '1px solid var(--c-border)', boxShadow: 'var(--c-shadow)', zIndex: 1000,
-      }}>
-        <img
-          src={process.env.PUBLIC_URL + '/assets/logo.png'}
-          alt="logo"
-          style={{ position: 'absolute', left: 16, height: 40, width: 160, objectFit: 'contain', filter: 'var(--c-logo-filter)' }}
-        />
-        <h1 style={{
-          fontSize: '17px', margin: 0, color: 'var(--c-text)', fontFamily: 'Sarabun-Medium',
-          textAlign: 'center', display: 'flex', alignItems: 'center', gap: 12, fontWeight: 600, letterSpacing: 0.3,
-        }}>
-          HydroGIS ชลาทัศน์ : ศูนย์แผนที่สำรวจและคุณภาพน้ำ
-        </h1>
-        
-        <div style={{ position: 'absolute', right: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-          
-          <div 
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '6px',
-              background: 'var(--c-bg-subtle)', border: '1px solid var(--c-border)',
-              padding: '6px 12px', borderRadius: '20px',
-              fontSize: '12px', color: 'var(--c-text-secondary)',
-              fontFamily: 'Sarabun-Medium, sans-serif', fontWeight: 600,
-              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)',
-              cursor: 'default'
-            }} 
-            title="จำนวนการเข้าชมระบบ"
-          >
+      <header className="app-header">
+        <div className="header-left">
+          <img
+            src={process.env.PUBLIC_URL + '/assets/logo.png'}
+            alt="logo"
+            className="header-logo"
+          />
+        </div>
+
+        <div className="header-center">
+          <h1 className="header-title">
+            HydroGIS ชลาทัศน์ <span className="header-title-sub">: ศูนย์แผนที่สำรวจและคุณภาพน้ำ</span>
+          </h1>
+        </div>
+
+        <div className="header-right">
+          <div className="visitor-badge" title="จำนวนการเข้าชมระบบ">
             <span style={{ fontSize: '14px' }}>👁️</span>
-            {visitorCount.toLocaleString()}
+            <span>{visitorCount.toLocaleString()}</span>
           </div>
 
           {/* ส่วนจัดการบัญชี (เข้าสู่ระบบ / ออกจากระบบ) */}
           {authToken ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 13, color: 'var(--c-text)', fontFamily: 'Sarabun-Medium', fontWeight: 600 }}>
-                👋 สวัสดี, {authUser}
+                👋 {authUser}
               </span>
               <button
                 className="auth-btn logout"
@@ -547,7 +618,8 @@ function App() {
                   setAuthUser(null);
                 }}
               >
-                <span style={{ fontSize: '14px' }}>🚪</span> ออกจากระบบ
+                <span style={{ fontSize: '14px' }}>🚪</span>
+                <span className="auth-text">ออกจากระบบ</span>
               </button>
             </div>
           ) : (
@@ -555,10 +627,11 @@ function App() {
               className="auth-btn login"
               onClick={() => setShowLogin(true)}
             >
-              <span className="login-icon" style={{ fontSize: '14px' }}></span> เข้าสู่ระบบ
+              <span className="login-icon" style={{ fontSize: '14px' }}></span>
+              <span className="auth-text">เข้าสู่ระบบ</span>
             </button>
           )}
-          
+
           {/* ปุ่ม Day/Night Toggle (ปรับลด 3D ให้เหมือน Figma) */}
           <div
             ref={toggleBtnRef}
@@ -602,8 +675,22 @@ function App() {
         />
       )}
 
-      <main style={{ flex: 1, display: 'flex', gap: 0, minHeight: 0 }}>
-        <aside style={{ width: sidebarCollapsed ? 64 : 220, minWidth: sidebarCollapsed ? 64 : 220, height: '100%', overflowY: 'auto', transition: 'width 0.25s ease, min-width 0.25s ease' }}>
+      {/* Backdrop สำหรับ Mobile Drawer */}
+      <div 
+        className={`mobile-drawer-backdrop ${mobileSidebarOpen ? 'active' : ''}`}
+        onClick={() => setMobileSidebarOpen(false)}
+      />
+
+      <main className="app-main">
+        <aside 
+          className={`sidebar-aside ${mobileSidebarOpen ? 'drawer-open' : ''}`}
+          style={{ width: 220, minWidth: 220 }}
+        >
+          {/* แถบปิด Drawer สำหรับมือถือ */}
+          <div className="drawer-close-btn">
+            <span>📂 ชั้นข้อมูล</span>
+            <button onClick={() => setMobileSidebarOpen(false)}>✕ ปิด</button>
+          </div>
           <Sidebar
             onLayerChange={ids => { setSelectedLayerIds(ids); mapRef.current?.closePopup(); hideHighlight(); }}
             onOrthoChange={setSelectedOrthoIds}
@@ -611,13 +698,11 @@ function App() {
             onWindChange={setWindEnabled}
             orthoOpacities={orthoOpacities}
             onOrthoOpacityChange={handleOrthoOpacityChange}
-            collapsed={sidebarCollapsed}
-            onCollapseChange={setSidebarCollapsed}
           />
         </aside>
 
-        <section style={{ flex: sidebarCollapsed ? 2.7 : 2, height: '100%', padding: 16, transition: 'flex 0.2s' }}>
-          <div style={{ height: '100%', borderRadius: 12, overflow: 'hidden', boxShadow: 'var(--c-shadow-card)', border: '1px solid var(--c-border)' }}>
+        <section className={`map-section ${mobileTab !== 'map' ? 'mobile-hidden' : ''}`} style={{ flex: 2 }}>
+          <div className="map-frame">
             <MapContainer center={mapCenter} zoom={mapZoom} maxZoom={24} closePopupOnClick={false} style={{ height: '100%', width: '100%' }}>
               <MapInstanceBridge mapRef={mapRef} />
               <LayerPaneSetup />
@@ -634,7 +719,13 @@ function App() {
               <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, fontFamily: 'Sarabun-Medium, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                 <button
                   onClick={() => setBasemapOpen(v => !v)}
-                  style={{ background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, color: 'var(--c-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: 'var(--c-shadow)', fontFamily: 'inherit' }}
+                  style={{ 
+                    background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', 
+                    borderRadius: 8, padding: 0, fontSize: 13, fontWeight: 700, 
+                    color: 'var(--c-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                    boxShadow: 'var(--c-shadow)', fontFamily: 'inherit',
+                    width: 54, height: 38, boxSizing: 'border-box'
+                  }}
                 >
                   {selectedBasemap.label}
                 </button>
@@ -646,28 +737,27 @@ function App() {
                         onClick={() => { basemapManualRef.current = true; setBasemapId(b.id); setBasemapOpen(false); }}
                         style={{ padding: '8px 12px', fontSize: 12, fontWeight: b.id === basemapId ? 700 : 500, color: b.id === basemapId ? 'var(--c-accent-light)' : 'var(--c-text)', background: b.id === basemapId ? 'var(--c-accent-bg)' : 'transparent', borderRadius: 6, cursor: 'pointer' }}
                       >
-                        {b.label}
+                        {b.fullLabel || b.label}
                       </div>
                     ))}
                   </div>
                 )}
-                
-                {/* ปุ่มค้นหาตำแหน่งปัจจุบัน */}
+
+                {/* ปุ่มซูมขอบเขตข้อมูลทั้งหมด (Fit Extent) - ขนาดเดียวกับปุ่มด้านบนเป๊ะ */}
                 <button
-                  onClick={handleLocateUser}
-                  title="แสดงตำแหน่งของฉัน"
+                  onClick={zoomToActiveExtent}
+                  title="ซูมพอดีขอบเขตข้อมูลทั้งหมด (Fit Extent)"
                   style={{ 
                     background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', 
-                    borderRadius: '8px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', boxShadow: 'var(--c-shadow)', color: '#3b82f6', width: '100%',
+                    borderRadius: 8, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', boxShadow: 'var(--c-shadow)', color: 'var(--c-text)', 
+                    width: 54, height: 38, boxSizing: 'border-box',
                     transition: 'all 0.2s'
                   }}
                 >
-                  <img 
-                    src={process.env.PUBLIC_URL + '/assets/mylocation.svg'} 
-                    alt="My Location" 
-                    style={{ width: 20, height: 20, objectFit: 'contain' }} 
-                  />
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                  </svg>
                 </button>
               </div>
               
@@ -706,7 +796,8 @@ function App() {
                   setSelectedFeature(feature); 
                   setDashboardCollapsed(false); 
                   mapRef.current?.closePopup(); 
-                  handleZoomToFeature(feature); 
+                  handleZoomToFeature(feature);
+                  setMobileTab('data');
                 }} 
               />
 
@@ -746,40 +837,44 @@ function App() {
           </div>
         </section>
 
-        <section style={{ display: 'flex', flex: dashboardCollapsed ? 'none' : '0 0 45%', width: dashboardCollapsed ? 24 : '100%', height: '100%', transition: 'flex 0.25s ease, width 0.25s ease', overflow: 'hidden' }}>
+        <section 
+          className={`dashboard-section ${mobileTab === 'map' ? 'mobile-hidden' : ''}`}
+          style={{ flex: dashboardCollapsed ? 'none' : '0 0 45%', width: dashboardCollapsed ? 24 : '100%' }}
+        >
           <button
+            className="desktop-collapse-btn"
             onClick={() => setDashboardCollapsed(v => !v)}
             style={{ width: 24, minWidth: 24, height: '100%', background: 'var(--c-bg-secondary)', border: 'none', borderLeft: '1px solid var(--c-border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text-secondary)', fontSize: 14, padding: 0, transition: 'all 0.25s ease', flexShrink: 0 }}
           >
             {dashboardCollapsed ? '‹' : '›'}
           </button>
           
-          {!dashboardCollapsed && (
-            <div style={{ flex: 1, width: '100%', padding: '16px 16px 16px 8px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'inline-flex', gap: 4, marginBottom: 12, background: 'var(--c-bg-secondary)', padding: 4, borderRadius: 12, alignSelf: 'flex-start' }}>
+          {(!dashboardCollapsed || mobileTab === 'data') && (
+            <div className="dashboard-inner-container" style={{ flex: 1, width: '100%', padding: '16px 16px 16px 8px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'inline-flex', gap: 4, marginBottom: 12, background: 'var(--c-bg-secondary)', padding: 4, borderRadius: 12, alignSelf: 'flex-start', width: '100%' }}>
                 {/* แถบเมนู Dashboard Tabs (อัปเกรดดีไซน์ใหม่) */}
-              <div className="dashboard-tab-container">
-                <button
-                  className={`dashboard-tab-btn ${dashboardTab === 'table' ? 'active' : ''}`}
-                  onClick={() => setDashboardTab('table')}
-                >
-                  <span className="tab-icon">📋</span> คุณภาพน้ำ
-                </button>
-                
-                <button
-                  className={`dashboard-tab-btn ${dashboardTab === 'graph' ? 'active' : ''}`}
-                  onClick={() => setDashboardTab('graph')}
-                >
-                  <span className="tab-icon">📈</span> แนวโน้มผลการตรวจเชื้อ
-                </button>
-                
-                <button
-                  className={`dashboard-tab-btn ${dashboardTab === 'crossection' ? 'active' : ''}`}
-                  onClick={() => setDashboardTab('crossection')}
-                >
-                  <span className="tab-icon">⛰️</span> รูปตัด Cross Section
-                </button>
-              </div>
+                <div className="dashboard-tab-container">
+                  <button
+                    className={`dashboard-tab-btn ${dashboardTab === 'table' ? 'active' : ''}`}
+                    onClick={() => setDashboardTab('table')}
+                  >
+                    <span className="tab-icon">📋</span> คุณภาพน้ำ
+                  </button>
+                  
+                  <button
+                    className={`dashboard-tab-btn ${dashboardTab === 'graph' ? 'active' : ''}`}
+                    onClick={() => setDashboardTab('graph')}
+                  >
+                    <span className="tab-icon">📈</span> แนวโน้มผลตรวจ
+                  </button>
+                  
+                  <button
+                    className={`dashboard-tab-btn ${dashboardTab === 'crossection' ? 'active' : ''}`}
+                    onClick={() => setDashboardTab('crossection')}
+                  >
+                    <span className="tab-icon">⛰️</span> Cross Section
+                  </button>
+                </div>
               </div>
 
               <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -787,7 +882,14 @@ function App() {
                   selectedFeature ? (
                     <FeatureDetail feature={selectedFeature} onBack={() => { setSelectedFeature(null); hideHighlight(); }} onZoomToFeature={handleZoomToFeature} authToken={authToken} />
                   ) : (
-                    <DashboardTable points={tablePoints} onSelectFeature={feature => { setSelectedFeature(feature); handleZoomToFeature(feature); }} />
+                    <DashboardTable 
+                      points={tablePoints} 
+                      onSelectFeature={feature => { 
+                        setSelectedFeature(feature); 
+                        handleZoomToFeature(feature); 
+                        setMobileTab('map'); // เด้งกลับไปที่แผนที่บนมือถือเพื่อให้เห็นหมุด
+                      }} 
+                    />
                   )
                 ) : dashboardTab === 'graph' ? (
                   <WaterQualityDashboard points={tablePoints} />
@@ -803,6 +905,48 @@ function App() {
           )}
         </section>
       </main>
+
+      {/* แถบเมนูด้านล่างสุดสำหรับจอมือถือ (Bottom Navigation) */}
+      <nav className="mobile-bottom-nav">
+        <button 
+          className={`mobile-nav-item ${mobileTab === 'map' ? 'active' : ''}`}
+          onClick={() => {
+            setMobileTab('map');
+            zoomToActiveExtent();
+          }}
+        >
+          <span className="nav-icon">🗺️</span>
+          <span>แผนที่</span>
+        </button>
+        <button 
+          className={`mobile-nav-item ${mobileTab === 'data' && dashboardTab === 'table' ? 'active' : ''}`}
+          onClick={() => { setDashboardTab('table'); setMobileTab('data'); }}
+        >
+          <span className="nav-icon">📋</span>
+          <span>คุณภาพน้ำ</span>
+        </button>
+        <button 
+          className={`mobile-nav-item ${mobileTab === 'data' && dashboardTab === 'graph' ? 'active' : ''}`}
+          onClick={() => { setDashboardTab('graph'); setMobileTab('data'); }}
+        >
+          <span className="nav-icon">📈</span>
+          <span>แนวโน้ม</span>
+        </button>
+        <button 
+          className={`mobile-nav-item ${mobileTab === 'data' && dashboardTab === 'crossection' ? 'active' : ''}`}
+          onClick={() => { setDashboardTab('crossection'); setMobileTab('data'); }}
+        >
+          <span className="nav-icon">⛰️</span>
+          <span>Cross Section</span>
+        </button>
+        <button 
+          className="mobile-nav-item"
+          onClick={() => setMobileSidebarOpen(true)}
+        >
+          <span className="nav-icon">🗂️</span>
+          <span>ชั้นข้อมูล</span>
+        </button>
+      </nav>
     </div>
   );
 }

@@ -22,24 +22,9 @@
   font-family: 'Sarabun', 'Segoe UI', sans-serif;
 }
 
-/* === ปุ่ม Toggle พับ/ขยาย sidebar === */
+/* === ปุ่ม Toggle พับ/ขยาย sidebar (ปิดใช้งานตามคำขอ) === */
 .sidebar-toggle-btn {
-  width: 100%;                  /* กว้างเต็ม sidebar */
-  height: 48px;
-  background: linear-gradient(135deg, var(--c-toggle-start) 0%, var(--c-toggle-end) 100%);
-  color: var(--c-toggle-text);
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background 0.3s ease; /* transition นุ่มนวล */
-  border-bottom: 1px solid var(--c-border);
-  flex-shrink: 0;               /* ไม่หด */
+  display: none !important;
 }
 
 /* hover: เปลี่ยน gradient */
