@@ -157,6 +157,7 @@ function App() {
   const toggleBtnRef = useRef();
   const mapRef = useRef();
   const highlightMarkerRef = useRef(null);
+  const previousSwanSelectedRef = useRef(false);
 
   useEffect(() => {
     const firebaseUrl = 'https://hydrogi-default-rtdb.asia-southeast1.firebasedatabase.app/visitorCount.json';
@@ -260,6 +261,8 @@ function App() {
     const flatLayers = layers.flatMap(cat => cat.items || [cat]);
     const selectedWFSLayers = flatLayers.filter(l => selectedLayerIds.includes(l.id) && l.kind !== 'line' && l.id !== 'swan_station');
     const isSwanSelected = selectedLayerIds.includes('swan_station');
+    const shouldFocusSwanStation = isSwanSelected && !previousSwanSelectedRef.current;
+    previousSwanSelectedRef.current = isSwanSelected;
 
     if (!selectedWFSLayers.length && !isSwanSelected) {
       setPoints([]);
@@ -275,13 +278,17 @@ function App() {
     let swanPromise = Promise.resolve([]);
     if (isSwanSelected) {
       swanPromise = fetch('https://api-v3.thaiwater.net/api/v1/thaiwater30/public/swan_station')
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error(`ThaiWater response status: ${res.status}`);
+          return res.json();
+        })
         .then(data => {
-          const arr = Array.isArray(data) ? data : (data?.data || data?.swan_station || []);
+          const arr = Array.isArray(data) ? data : data?.data || data?.swan_station;
+          if (!Array.isArray(arr)) throw new Error('Unexpected ThaiWater station response');
           return arr.map((item, idx) => {
             const lat = parseFloat(item?.swan_lat || item?.station?.lat || item?.lat || item?.latitude);
             const lng = parseFloat(item?.swan_long || item?.station?.long || item?.station?.lng || item?.long || item?.longitude);
-            const name = item?.station?.station_name?.th || item?.station_name || `สถานีคลื่นทะเล ${idx+1}`;
+            const name = item?.swan_name?.th || item?.station?.station_name?.th || item?.station_name || `สถานีคลื่นทะเล ${idx+1}`;
             
             if (isNaN(lat) || isNaN(lng)) return null;
 
@@ -308,6 +315,22 @@ function App() {
     Promise.all([...wfsPromises, swanPromise]).then(results => {
       const mergedFeatures = results.flat();
       setPoints(mergedFeatures);
+      if (shouldFocusSwanStation && mapRef.current) {
+        const map = mapRef.current;
+        const center = map.getCenter();
+        const nearestStation = mergedFeatures
+          .filter(feature => feature.properties?._source === 'thaiwater')
+          .reduce((nearest, feature) => {
+            const [lng, lat] = feature.geometry.coordinates;
+            const distance = Math.hypot(lat - center.lat, lng - center.lng);
+            return !nearest || distance < nearest.distance ? { feature, distance } : nearest;
+          }, null);
+
+        if (nearestStation) {
+          const [lng, lat] = nearestStation.feature.geometry.coordinates;
+          map.setView([lat, lng], map.getZoom());
+        }
+      }
     });
   }, [selectedLayerIds]);
 

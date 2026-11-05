@@ -34,7 +34,7 @@ const WaveGraphModal = ({ feature, onClose }) => {
       setError('');
 
       try {
-        const apiUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&hourly=wave_height&timezone=Asia%2FBangkok&start_date=${startDate}&end_date=${endDate}`;
+        const apiUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lng}&hourly=wave_height,wave_direction&timezone=Asia%2FBangkok&start_date=${startDate}&end_date=${endDate}`;
         
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error('ไม่สามารถดึงข้อมูลพยากรณ์คลื่นได้');
@@ -52,7 +52,8 @@ const WaveGraphModal = ({ feature, onClose }) => {
             return {
               time: `${dateLabel}${timeLabel}`,
               fullDate: dateObj,
-              height: data.hourly.wave_height[index] || 0
+              height: data.hourly.wave_height[index] || 0,
+              direction: data.hourly.wave_direction?.[index]
             };
           });
           
@@ -94,9 +95,12 @@ const WaveGraphModal = ({ feature, onClose }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}></div>
             <p style={{ margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>
-              {payload[0].value.toFixed(2)} <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748b' }}>เมตร</span>
+              {dataPoint.height.toFixed(2)} <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748b' }}>เมตร</span>
             </p>
           </div>
+          <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569' }}>
+            ทิศทางคลื่น: {Number.isFinite(dataPoint.direction) ? `${Math.round(dataPoint.direction)}°` : '-'}
+          </p>
         </div>
       );
     }
