@@ -151,12 +151,19 @@
    📱 Mobile & Tablet Responsive Breakpoint (เฉพาะหน้าจอ <= 768px เท่านั้น)
    ========================================================================== */
 @media screen and (max-width: 768px) {
+  #root > div {
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 0;
+  }
+
   /* Header ย่อขนาด */
   .app-header {
     height: 50px;
     min-height: 50px;
     padding: 0 10px;
     gap: 6px;
+    flex-shrink: 0;
   }
 
   .header-logo {
@@ -252,6 +259,7 @@
   /* Main Layout ปรับเป็นแนวตั้ง */
   .app-main {
     flex-direction: column !important;
+    min-height: 0;
   }
 
   .desktop-collapse-btn {
@@ -315,12 +323,15 @@
   /* แถบเมนูล่างสุด (Bottom Navigation) - แสดงเฉพาะบนมือถือ */
   .mobile-bottom-nav {
     display: flex !important;
-    height: 52px;
-    min-height: 52px;
+    height: calc(52px + env(safe-area-inset-bottom, 0px));
+    min-height: calc(52px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     background: var(--c-bg-primary);
     border-top: 1px solid var(--c-border);
     box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
     z-index: 1000;
+    box-sizing: border-box;
+    flex-shrink: 0;
   }
 
   .mobile-nav-item {
