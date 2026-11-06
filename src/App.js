@@ -27,6 +27,7 @@ import './ResponsiveLayout.css'; // สไตล์ Responsive รองรั�
 
 // นำเข้า Modal กราฟคลื่นทะเล
 import WaveGraphModal from './WaveGraphModal';
+import { fetchSwanStations, getSwanStationList } from './swanStationApi';
 // นำเข้า กราฟ Cross Section
 import CrossSectionGraph from './CrossSectionGraph';
 
@@ -277,14 +278,9 @@ function App() {
 
     let swanPromise = Promise.resolve([]);
     if (isSwanSelected) {
-      swanPromise = fetch('https://api-v3.thaiwater.net/api/v1/thaiwater30/public/swan_station')
-        .then(res => {
-          if (!res.ok) throw new Error(`ThaiWater response status: ${res.status}`);
-          return res.json();
-        })
+      swanPromise = fetchSwanStations()
         .then(data => {
-          const arr = Array.isArray(data) ? data : data?.data || data?.swan_station;
-          if (!Array.isArray(arr)) throw new Error('Unexpected ThaiWater station response');
+          const arr = getSwanStationList(data);
           return arr.map((item, idx) => {
             const lat = parseFloat(item?.swan_lat || item?.station?.lat || item?.lat || item?.latitude);
             const lng = parseFloat(item?.swan_long || item?.station?.long || item?.station?.lng || item?.long || item?.longitude);
