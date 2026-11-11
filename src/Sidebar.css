@@ -1,25 +1,27 @@
 /*
- * Sidebar.css — สไตล์แถบด้านข้าง (Sidebar)
+ * Sidebar.css — สไตล์แถบด้านข้าง (Sidebar) แบบ macOS source list
  * ประกอบด้วย:
- *   - คอนเทนเนอร์หลัก + gradient
- *   - ปุ่ม toggle พับ/ขยาย
+ *   - คอนเทนเนอร์หลัก (วัสดุกึ่งโปร่งใส + blur)
  *   - หัวข้อ + พื้นที่เลื่อน
- *   - รายการ layer (checkbox, icon, name)
+ *   - รายการ layer (ไฮไลต์พื้นโค้ง ไม่มีขอบ)
  *   - footer
  *   - สถานะ collapsed
+ *   - แถบปรับความทึบ Raster
  * ใช้ CSS Custom Properties จาก index.css สำหรับธีม
+ * ไฟล์สำรองก่อนปรับ: Sidebar.css.pre-macos.bak
  */
 
 /* === คอนเทนเนอร์หลัก sidebar === */
 .sidebar-container {
-  height: 100%;                 /* สูงเต็มจอ */
-  background: linear-gradient(180deg, var(--c-sidebar-start) 0%, var(--c-sidebar-end) 100%); /* gradient แนวตั้ง */
+  height: 100%;
+  background: var(--c-sidebar-start);
+  -webkit-backdrop-filter: var(--blur-panel);
+  backdrop-filter: var(--blur-panel);
   display: flex;
-  flex-direction: column;       /* จัดเรียงแนวตั้ง */
-  border-right: 1px solid var(--c-border); /* เส้นขอบขวา */
-  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.15); /* เงาด้านขวา */
+  flex-direction: column;
+  border-right: 1px solid var(--c-border);
+  box-shadow: none;
   overflow: hidden;
-  font-family: 'Sarabun', 'Segoe UI', sans-serif;
 }
 
 /* === ปุ่ม Toggle พับ/ขยาย sidebar (ปิดใช้งานตามคำขอ) === */
@@ -27,15 +29,10 @@
   display: none !important;
 }
 
-/* hover: เปลี่ยน gradient */
-.sidebar-toggle-btn:hover {
-  background: linear-gradient(135deg, var(--c-toggle-hover-start) 0%, var(--c-toggle-hover-end) 100%);
-}
-
 /* === หัวข้อ Sidebar === */
 .sidebar-header {
-  padding: 16px 16px 12px;
-  border-bottom: 1px solid var(--c-border); /* เส้นแบ่งด้านล่าง */
+  padding: 16px 16px 10px;
+  border-bottom: 1px solid var(--c-border);
   flex-shrink: 0;
 }
 
@@ -43,159 +40,124 @@
 .sidebar-subheader {
   padding: 14px 12px 6px;
   margin-top: 6px;
-  border-top: 1px solid var(--c-border); /* เส้นแบ่งจากกลุ่มด้านบน */
+  border-top: 1px solid var(--c-border);
 }
 
-/* ข้อความหัวข้อ — ตัวพิมพ์ใหญ่, ตัวเล็กมาก */
+/* ข้อความหัวข้อ — ตัวพิมพ์ปกติ ขนาดเล็ก สีเทารอง (แบบ macOS) */
 .sidebar-header-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--c-sidebar-header);
-  text-transform: uppercase;    /* UPPERCASE */
-  letter-spacing: 1.5px;        /* เว้นระยะตัวอักษร */
+  text-transform: none;
+  letter-spacing: 0;
   margin: 0;
 }
 
 /* === พื้นที่เนื้อหา (เลื่อนได้) === */
 .sidebar-content {
-  flex: 1;                      /* ยืดเต็มพื้นที่ที่เหลือ */
+  flex: 1;
   padding: 8px;
-  overflow-y: auto;             /* เลื่อนแนวตั้ง */
-  overflow-x: hidden;           /* ซ่อนแนวนอน */
-}
-
-/* scrollbar เฉพาะ sidebar — บางกว่า global */
-.sidebar-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar-content::-webkit-scrollbar-thumb {
-  background: var(--c-scrollbar);
-  border-radius: 4px;
-}
-
-.sidebar-content::-webkit-scrollbar-thumb:hover {
-  background: var(--c-scrollbar-hover);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* === รายการ Layer แต่ละชั้นข้อมูล === */
 .layer-item {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
+  padding: 6px 10px;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--radius-s);
   margin-bottom: 2px;
-  transition: all 0.2s ease;    /* animation เปลี่ยนสีนุ่มนวล */
-  border: 1px solid transparent; /* ขอบโปร่งใส — เปลี่ยนเมื่อ hover/active */
-  position: relative;           /* สำหรับ ::before indicator */
+  transition: background var(--dur) var(--ease-out);
+  border: none;
+  position: relative;
 }
 
-/* hover: พื้นหลังน้ำเงินจาง + ขอบ */
+/* hover: ไฮไลต์เทาบางๆ */
 .layer-item:hover {
   background: var(--c-bg-hover);
-  border-color: var(--c-accent-border);
 }
 
-/* active: layer ที่เลือกอยู่ */
+/* active: layer ที่เลือกอยู่ — พื้นสี accent จาง */
 .layer-item.active {
   background: var(--c-bg-active);
-  border-color: var(--c-accent-border);
 }
 
-/* แถบน้ำเงินด้านซ้าย — indicator ว่า layer ถูกเลือก */
+/* เลิกใช้แถบน้ำเงินด้านซ้าย */
 .layer-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;                   /* ความกว้างแถบ */
-  height: 60%;                  /* สูง 60% ของรายการ */
-  background: var(--c-accent);  /* สีเน้น */
-  border-radius: 0 3px 3px 0;   /* มุมมนด้านขวา */
+  content: none;
 }
 
 /* === กรอบไอคอน Layer === */
 .layer-icon-wrapper {
-  width:44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: var(--c-bg-icon);  /* พื้นหลังไอคอน */
+  background: var(--c-bg-icon);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;               /* ไม่หด */
-  transition: background 0.2s ease;
-  border: 2px solid var(--c-bg-icon-border);
-  overflow: hidden;             /* ครอบรูปที่ใหญ่กว่ากรอบ */
+  flex-shrink: 0;
+  transition: background var(--dur) var(--ease-out);
+  border: none;
+  overflow: hidden;
 }
 
-/* เมื่อ layer ถูกเลือก: เปลี่ยนสีกรอบไอคอน */
 .layer-item.active .layer-icon-wrapper {
   background: var(--c-accent-bg);
-  border-color: var(--c-accent-border);
 }
 
-/* ขนาดรูปไอคอน */
 .layer-icon-wrapper img {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;          /* คงสัดส่วน */
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 /* === ชื่อ Layer === */
 .layer-name {
   font-size: 13px;
   color: var(--c-layer-name);
-  font-weight: 500;
-  letter-spacing: 0.2px;
-  flex: 1;                      /* ยืดเต็ม */
-  user-select: none;            /* ป้องกันเลือกข้อความ */
+  font-weight: 400;
+  letter-spacing: 0;
+  flex: 1;
+  user-select: none;
   margin-left: 10px;
   line-height: 1.3;
-  white-space: nowrap;          /* ไม่ขึ้นบรรทัดใหม่ */
+  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;      /* ตัดด้วย ... */
+  text-overflow: ellipsis;
 }
 
-/* ชื่อ layer ที่เลือก — ตัวหนาขึ้น สีสว่างขึ้น */
 .layer-item.active .layer-name {
   color: var(--c-layer-name-active);
-  font-weight: 600;
+  font-weight: 500;
 }
 
-/* === Checkbox (เครื่องหมายถูก) === */
+/* === Checkbox แบบวงกลม (เหมือน macOS/iOS) === */
 .layer-check {
   width: 18px;
   height: 18px;
-  border-radius: 4px;
-  border: 2px solid var(--c-check-border); /* ขอบเริ่มต้น */
+  border-radius: 50%;
+  border: 1.5px solid var(--c-check-border);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.2s ease;
-  margin-left: auto;            /* ดันไปชิดขวา */
+  transition: background var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+  margin-left: auto;
 }
 
-/* เมื่อเลือก: เปลี่ยนเป็นสีเน้น */
 .layer-item.active .layer-check {
   background: var(--c-accent);
   border-color: var(--c-accent);
 }
 
-/* ไอคอนถูก — ซ่อนเมื่อไม่เลือก */
 .layer-check svg {
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--dur) var(--ease-out);
 }
 
-/* ไอคอนถูก — แสดงเมื่อเลือก */
 .layer-item.active .layer-check svg {
   opacity: 1;
 }
@@ -203,45 +165,42 @@
 /* === Footer sidebar === */
 .sidebar-footer {
   padding: 12px 16px;
-  border-top: 1px solid var(--c-border); /* เส้นแบ่งด้านบน */
+  border-top: 1px solid var(--c-border);
   flex-shrink: 0;
 }
 
-/* ข้อความ footer — ตัวเล็ก, จัดกลาง */
 .sidebar-footer-text {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--c-footer-text);
   text-align: center;
   margin: 0;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
 }
 
 /* === สถานะ Collapsed (พับ sidebar) === */
-/* รายการ layer — จัดกลาง */
 .sidebar-container.collapsed .layer-item {
   justify-content: center;
-  padding: 10px 8px;
+  padding: 8px;
 }
 
-/* ไอคอนใหญ่ขึ้นเมื่อพับ */
 .sidebar-container.collapsed .layer-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
 }
 
 .sidebar-container.collapsed .layer-icon-wrapper img {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 /* === แถบปรับความทึบ Raster === */
 .opacity-slider-wrap {
-  margin: 2px 14px 8px 32px;
+  margin: 2px 8px 8px 32px;
   padding: 8px 12px 10px;
-  background: var(--c-bg-active);
-  border: 1px solid var(--c-accent-border);
-  border-radius: 10px;
+  background: var(--c-bg-subtle);
+  border: none;
+  border-radius: var(--radius-m);
 }
 
 .opacity-slider-wrap.no-cat {
@@ -252,16 +211,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--c-text-secondary);
-  margin-bottom: 7px;
-  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+  letter-spacing: 0;
 }
 
 .opacity-slider-header span:last-child {
   font-size: 12px;
-  color: var(--c-accent-light);
+  color: var(--c-text-secondary);
   font-variant-numeric: tabular-nums;
   min-width: 32px;
   text-align: right;
@@ -281,41 +240,38 @@
     to right,
     var(--c-accent) 0%,
     var(--c-accent) var(--val, 40%),
-    var(--c-border) var(--val, 40%),
-    var(--c-border) 100%
+    var(--c-bg-input) var(--val, 40%),
+    var(--c-bg-input) 100%
   );
 }
 
+/* ปุ่มเลื่อนสีขาวมีเงาบาง แบบ macOS */
 .opacity-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: var(--c-accent-light);
-  border: 2px solid var(--c-bg-primary, #1e2533);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
-  transition: transform 0.15s, box-shadow 0.15s;
+  background: #ffffff;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transition: transform var(--dur) var(--ease-out);
 }
 
 .opacity-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: var(--c-accent-light);
-  border: 2px solid var(--c-bg-primary, #1e2533);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
-  transition: transform 0.15s, box-shadow 0.15s;
+  background: #ffffff;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transition: transform var(--dur) var(--ease-out);
 }
 
-.opacity-slider:hover::-webkit-slider-thumb,
-.opacity-slider:focus::-webkit-slider-thumb {
-  transform: scale(1.2);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+.opacity-slider:active::-webkit-slider-thumb {
+  transform: scale(1.08);
 }
 
-.opacity-slider:hover::-moz-range-thumb,
-.opacity-slider:focus::-moz-range-thumb {
-  transform: scale(1.2);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+.opacity-slider:active::-moz-range-thumb {
+  transform: scale(1.08);
 }

@@ -22,8 +22,8 @@
     to right,
     var(--c-accent) 0%,
     var(--c-accent) var(--val, 0%),
-    var(--c-border) var(--val, 0%),
-    var(--c-border) 100%
+    var(--c-bg-input) var(--val, 0%),
+    var(--c-bg-input) 100%
   );
 }
 
@@ -33,32 +33,30 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--c-accent-light);
-  border: 2px solid var(--c-bg-primary, #1e2533);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  transition: transform 0.15s, box-shadow 0.15s;
+  background: #ffffff;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: transform var(--dur) var(--ease-out);
 }
 
 .rain-slider::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--c-accent-light);
-  border: 2px solid var(--c-bg-primary, #1e2533);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  transition: transform 0.15s, box-shadow 0.15s;
+  background: #ffffff;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: transform var(--dur) var(--ease-out);
 }
 
 .rain-slider:hover::-webkit-slider-thumb,
 .rain-slider:focus::-webkit-slider-thumb {
-  transform: scale(1.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  transform: scale(1.08);
 }
 
 .rain-slider:hover::-moz-range-thumb,
 .rain-slider:focus::-moz-range-thumb {
-  transform: scale(1.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  transform: scale(1.08);
 }
 
 /* Tick marks — อยู่ใต้ slider */
@@ -98,5 +96,5 @@
   white-space: nowrap;
   margin-top: 1px;
   font-variant-numeric: tabular-nums;
-  font-family: 'Sarabun', sans-serif;
+  font-family: var(--font-ui);
 }

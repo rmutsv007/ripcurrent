@@ -24,15 +24,17 @@ const BacteriaLegend = () => {
       bottom: '124px',
       right: '24px', // แสดงที่มุมขวาล่างของแผนที่
       zIndex: 1000,
-      background: 'rgba(255, 255, 255, 0.95)',
-      backdropFilter: 'blur(4px)',
+      background: 'var(--c-popup-start)',
+      WebkitBackdropFilter: 'var(--blur-panel)',
+      backdropFilter: 'var(--blur-panel)',
+      border: '1px solid var(--c-border)',
       padding: '12px 16px',
-      borderRadius: '12px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-      fontFamily: 'Sarabun-Medium, sans-serif',
+      borderRadius: '14px',
+      boxShadow: 'var(--c-shadow-lg)',
+      fontFamily: 'var(--font-ui)',
       minWidth: '150px'
     }}>
-      <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#1e293b', textAlign: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px' }}>
+      <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 600, color: 'var(--c-text)', textAlign: 'center', borderBottom: '1px solid var(--c-border)', paddingBottom: '6px' }}>
         ระดับความเข้มข้น <br /> E.Coli (CFU/g)
       </h4>
       
@@ -47,7 +49,7 @@ const BacteriaLegend = () => {
               borderRadius: '4px',
               border: '1px solid rgba(0,0,0,0.1)'
             }}></div>
-            <span style={{ fontSize: '13px', color: '#475569', fontWeight: 500 }}>{item.label}</span>
+            <span style={{ fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 400 }}>{item.label}</span>
           </div>
         ))}
       </div>

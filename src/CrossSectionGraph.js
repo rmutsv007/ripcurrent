@@ -381,19 +381,19 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
 
       return (
         <div style={{
-          background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(229, 231, 235, 0.5)', padding: '12px 16px',
-          borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+          background: 'var(--c-popup-start)', WebkitBackdropFilter: 'var(--blur-panel)', backdropFilter: 'var(--blur-panel)',
+          border: '1px solid var(--c-border)', padding: '12px 16px',
+          borderRadius: '12px', boxShadow: 'var(--c-shadow-lg)'
         }}>
-          <p style={{ margin: '0 0 6px 0', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>ระยะทาง: {label} ม.</p>
+          <p style={{ margin: '0 0 6px 0', fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 500 }}>ระยะทาง: {label} ม.</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'linear-gradient(135deg, #dcb788 0%, #c49a6c 100%)' }}></div>
-            <p style={{ margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>
-              {sandPoint.value.toFixed(2)} <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748b' }}>เมตร</span>
+            <p style={{ margin: 0, fontSize: '15px', color: 'var(--c-text)', fontWeight: 600 }}>
+              {sandPoint.value.toFixed(2)} <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--c-text-secondary)' }}>เมตร</span>
             </p>
           </div>
           {isLoggedIn && (
-            <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#3b82f6', fontWeight: 600 }}>
+            <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: 'var(--c-accent-text)', fontWeight: 600 }}>
               *คลิกค้างเพื่อลากปรับระดับความสูง
             </p>
           )}
@@ -406,8 +406,9 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
   return (
     <div style={{
       flex: 1, display: 'flex', flexDirection: 'column',
-      background: '#ffffff', borderRadius: '24px', padding: '24px 32px',
-      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)', fontFamily: 'Sarabun-Medium, sans-serif',
+      background: 'var(--c-bg-primary)', borderRadius: '14px', padding: '24px 32px',
+      border: '1px solid var(--c-border)',
+      boxShadow: 'var(--c-shadow-card)', fontFamily: 'var(--font-ui)',
       position: 'relative',
       cursor: isLoggedIn ? (dragInfo ? 'grabbing' : 'pointer') : 'default'
     }}>
@@ -415,25 +416,25 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
       {dragInfo && (
         <div style={{
           position: 'absolute', top: 90, left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(15, 23, 42, 0.95)', color: 'white', padding: '10px 24px',
+          background: 'var(--c-popup-start)', WebkitBackdropFilter: 'var(--blur-panel)', backdropFilter: 'var(--blur-panel)', color: 'var(--c-text)', border: '1px solid var(--c-border)', padding: '10px 24px',
           borderRadius: '30px', zIndex: 100, display: 'flex', gap: '16px', alignItems: 'center',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)', fontWeight: 600, fontSize: '14px',
+          boxShadow: 'var(--c-shadow-lg)', fontWeight: 600, fontSize: '14px',
           animation: 'smartModalPop 0.2s ease-out forwards'
         }}>
-          <span>📍 ระยะ: <span style={{ color: '#38bdf8' }}>{dragInfo.distance} ม.</span></span>
-          <span style={{ color: '#475569' }}>|</span>
-          <span>📉 ค่าเดิม: <span style={{ color: '#94a3b8' }}>{dragInfo.originalElev.toFixed(2)} ม.</span></span>
-          <span style={{ color: '#475569' }}>|</span>
-          <span>📈 ค่าใหม่: <span style={{ color: '#fbbf24', fontSize: '16px' }}>{dragInfo.currentElev.toFixed(2)} ม.</span></span>
+          <span>ระยะ: <span style={{ color: 'var(--c-accent-text)' }}>{dragInfo.distance} ม.</span></span>
+          <span style={{ color: 'var(--c-text-muted)' }}>|</span>
+          <span>ค่าเดิม: <span style={{ color: 'var(--c-text-secondary)' }}>{dragInfo.originalElev.toFixed(2)} ม.</span></span>
+          <span style={{ color: 'var(--c-text-muted)' }}>|</span>
+          <span>ค่าใหม่: <span style={{ color: 'var(--c-accent-text)', fontSize: '16px' }}>{dragInfo.currentElev.toFixed(2)} ม.</span></span>
         </div>
       )}
 
       {saveStatus === 'saved' && !dragInfo && (
         <div style={{
           position: 'absolute', top: 90, left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(16, 185, 129, 0.95)', color: 'white', padding: '8px 20px',
+          background: 'var(--c-green)', color: '#fff', padding: '8px 20px',
           borderRadius: '30px', zIndex: 100, fontWeight: 600, fontSize: '13px',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+          boxShadow: 'var(--c-shadow-lg)'
         }}>
           ✓ บันทึกการปรับแก้แล้ว
         </div>
@@ -442,65 +443,65 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-            <div style={{ background: '#fcf6f0', padding: '8px', borderRadius: '12px', color: '#c49a6c', display: 'flex' }}>
+            <div style={{ background: 'rgba(196, 154, 108, 0.16)', padding: '8px', borderRadius: '10px', color: '#c49a6c', display: 'flex' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 18l-6-6-6 6" />
                 <path d="M3 18l6-6 6 6" />
               </svg>
             </div>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>
+            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--c-text)' }}>
               รูปตัดขวาง (Cross Section) เดือนสิงหาคม 2026
             </h2>
           </div>
-          <p style={{ margin: '0 0 0 46px', fontSize: '14px', color: '#64748b' }}>
+          <p style={{ margin: '0 0 0 46px', fontSize: '14px', color: 'var(--c-text-secondary)' }}>
             สถานี: {selectedStation || 'กำลังโหลด...'}
           </p>
         </div>
 
         {isLoggedIn && (
           <button onClick={downloadCSV} style={{
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            background: 'var(--c-accent)',
             color: 'white', border: 'none', padding: '10px 18px',
-            borderRadius: '20px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)', transition: 'all 0.2s', fontFamily: 'inherit', fontSize: '14px'
+            borderRadius: '10px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+            boxShadow: 'none', transition: 'filter 0.18s', fontFamily: 'inherit', fontSize: '14px'
           }}
-          onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-          onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+          onMouseOver={e => e.currentTarget.style.filter = 'brightness(1.08)'}
+          onMouseOut={e => e.currentTarget.style.filter = 'none'}
           >
-            <span style={{ fontSize: '16px' }}>📥</span> ดาวน์โหลดไฟล์ .csv
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> ดาวน์โหลดไฟล์ .csv
           </button>
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', padding: '16px 20px', background: '#f8fafc', borderRadius: '16px' }}>
-        <div style={{ fontSize: '14px', color: '#475569', fontWeight: 600, whiteSpace: 'nowrap' }}>เลือกสถานี:</div>
-        <button onClick={handlePrevStation} disabled={selectedIndex <= 0} style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none', background: selectedIndex <= 0 ? '#e2e8f0' : '#ffffff', color: selectedIndex <= 0 ? '#94a3b8' : '#334155', boxShadow: selectedIndex <= 0 ? 'none' : '0 1px 3px rgba(0,0,0,0.08)', cursor: selectedIndex <= 0 ? 'default' : 'pointer', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
-        <input type="range" min={0} max={Math.max(stations.length - 1, 0)} step={1} value={selectedIndex} onChange={(e) => handleSliderChange(Number(e.target.value))} style={{ flex: 1, accentColor: '#c49a6c', cursor: 'pointer' }} />
-        <button onClick={handleNextStation} disabled={selectedIndex >= stations.length - 1} style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none', background: selectedIndex >= stations.length - 1 ? '#e2e8f0' : '#ffffff', color: selectedIndex >= stations.length - 1 ? '#94a3b8' : '#334155', boxShadow: selectedIndex >= stations.length - 1 ? 'none' : '0 1px 3px rgba(0,0,0,0.08)', cursor: selectedIndex >= stations.length - 1 ? 'default' : 'pointer', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
-        <button onClick={toggleAutoPlay} style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none', background: isPlaying ? '#c49a6c' : '#ffffff', color: isPlaying ? '#ffffff' : '#334155', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{isPlaying ? '⏸' : '▶'}</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', padding: '16px 20px', background: 'var(--c-bg-subtle)', borderRadius: '12px' }}>
+        <div style={{ fontSize: '14px', color: 'var(--c-text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>เลือกสถานี:</div>
+        <button onClick={handlePrevStation} disabled={selectedIndex <= 0} style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none', background: selectedIndex <= 0 ? 'transparent' : 'var(--c-bg-input)', color: selectedIndex <= 0 ? 'var(--c-text-muted)' : 'var(--c-text)', boxShadow: 'none', cursor: selectedIndex <= 0 ? 'default' : 'pointer', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
+        <input type="range" min={0} max={Math.max(stations.length - 1, 0)} step={1} value={selectedIndex} onChange={(e) => handleSliderChange(Number(e.target.value))} style={{ flex: 1, accentColor: 'var(--c-accent)', cursor: 'pointer' }} />
+        <button onClick={handleNextStation} disabled={selectedIndex >= stations.length - 1} style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none', background: selectedIndex >= stations.length - 1 ? 'transparent' : 'var(--c-bg-input)', color: selectedIndex >= stations.length - 1 ? 'var(--c-text-muted)' : 'var(--c-text)', boxShadow: 'none', cursor: selectedIndex >= stations.length - 1 ? 'default' : 'pointer', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+        <button onClick={toggleAutoPlay} style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', border: 'none', background: isPlaying ? '#c49a6c' : 'var(--c-bg-input)', color: isPlaying ? '#ffffff' : 'var(--c-text)', boxShadow: 'none', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{isPlaying ? (<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="1" width="3" height="10" /><rect x="7" y="1" width="3" height="10" /></svg>) : (<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,1 11,6 2,11" /></svg>)}</button>
 
-        <select value={selectedStation} onChange={(e) => handleDropdownChange(e.target.value)} style={{ padding: '8px 14px', border: 'none', background: '#ffffff', borderRadius: '20px', color: '#334155', fontWeight: 700, outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0, minWidth: '90px' }}>
+        <select value={selectedStation} onChange={(e) => handleDropdownChange(e.target.value)} style={{ padding: '8px 14px', border: 'none', background: 'var(--c-bg-input)', borderRadius: '8px', color: 'var(--c-text)', fontWeight: 500, outline: 'none', boxShadow: 'none', fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0, minWidth: '90px' }}>
           {stations.map((station, idx) => (
             <option key={`${station}-${idx}`} value={station}>{station}</option>
           ))}
         </select>
       </div>
 
-      <h4 style={{ textAlign: 'center', margin: '0 0 16px 0', fontSize: '18px', color: '#1e293b', fontWeight: 700 }}>
+      <h4 style={{ textAlign: 'center', margin: '0 0 16px 0', fontSize: '18px', color: 'var(--c-text)', fontWeight: 600 }}>
         ระดับความสูงของรูปตัด
       </h4>
 
       <div ref={chartContainerRef} style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-        {loading && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 10, borderRadius: '12px' }}><div style={{ color: '#c49a6c', fontWeight: 600, fontSize: '15px' }}>กำลังโหลดข้อมูลรูปตัด...</div></div>}
+        {loading && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--c-popup-start)', zIndex: 10, borderRadius: '12px' }}><div style={{ color: '#c49a6c', fontWeight: 600, fontSize: '15px' }}>กำลังโหลดข้อมูลรูปตัด...</div></div>}
         {error && !loading && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', justifyContent: 'center', color: '#ef4444', zIndex: 10, textAlign: 'center', background: '#fef2f2', borderRadius: '16px', border: '1px solid #fee2e2' }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', justifyContent: 'center', color: '#ff3b30', zIndex: 10, textAlign: 'center', background: 'rgba(255, 59, 48, 0.10)', borderRadius: '12px', border: '1px solid rgba(255, 59, 48, 0.25)' }}>
             <p style={{ fontWeight: 600, margin: 0 }}>{error}</p>
-            <button onClick={fetchCSV} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '16px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={fetchCSV} style={{ background: '#ff3b30', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               ลองใหม่อีกครั้ง
             </button>
           </div>
         )}
-        {!loading && !error && chartData.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', zIndex: 10, background: '#f8fafc', borderRadius: '16px' }}>ไม่พบข้อมูลสำหรับสถานีนี้</div>}
+        {!loading && !error && chartData.length === 0 && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text-secondary)', zIndex: 10, background: 'var(--c-bg-subtle)', borderRadius: '12px' }}>ไม่พบข้อมูลสำหรับสถานีนี้</div>}
 
         {chartData.length > 0 && (
           <ResponsiveContainer width="100%" height="100%">
@@ -521,13 +522,13 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
                 </linearGradient>
               </defs>
 
-              <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--c-border)" />
 
               <XAxis
                 dataKey="distance"
                 axisLine={true}
                 tickLine={true}
-                tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
+                tick={{ fontSize: 12, fill: 'var(--c-text-secondary)', fontWeight: 500 }}
                 height={70}
                 dy={10}
                 label={{
@@ -535,7 +536,7 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
                   position: 'insideBottom',
                   offset: 15,
                   fontSize: 14,
-                  fill: '#475569',
+                  fill: 'var(--c-text-secondary)',
                   fontWeight: 600
                 }}
               />
@@ -543,16 +544,16 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
+                tick={{ fontSize: 12, fill: 'var(--c-text-secondary)', fontWeight: 500 }}
                 domain={[Y_AXIS_MIN, Y_AXIS_MAX]}
                 ticks={yAxisTicks}
-                label={{ value: 'ความสูง (ม.)', angle: -90, position: 'insideLeft', fontSize: 14, fill: '#475569', fontWeight: 600 }}
+                label={{ value: 'ความสูง (ม.)', angle: -90, position: 'insideLeft', fontSize: 14, fill: 'var(--c-text-secondary)', fontWeight: 600 }}
               />
 
-              <Tooltip content={<CustomTooltip />} cursor={dragInfo ? false : { stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} />
+              <Tooltip content={<CustomTooltip />} cursor={dragInfo ? false : { stroke: 'var(--c-border-input)', strokeWidth: 1, strokeDasharray: '4 4' }} />
 
               <Legend verticalAlign="bottom" height={40} content={() => (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px', fontSize: '13px', color: '#475569', fontWeight: 'bold', gap: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px', fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 600, gap: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: '#dcb788', marginRight: '6px' }}></span>ระดับพื้น</div>
                   <div style={{ display: 'flex', alignItems: 'center' }}><svg width="20" height="12" style={{ marginRight: '6px' }}><path d="M0 6 Q 5 2, 10 6 T 20 6" fill="none" stroke="#0284c7" strokeWidth="2" /></svg>น้ำทะเล</div>
                 </div>
@@ -561,15 +562,15 @@ const CrossSectionGraph = ({ selectedStation: selectedStationProp, onSelectStati
               <Area type="natural" dataKey="waterLevel" stroke="none" fillOpacity={1} fill="url(#colorWater)" baseValue="dataMin" activeDot={false} isAnimationActive={false} />
               <Area type="natural" dataKey="waterLevel" stroke="#0284c7" strokeWidth={2} fill="none" baseValue="dataMin" activeDot={false} isAnimationActive={false} shape={<SingleWavyWater />} />
 
-              <Area type="natural" dataKey="elevation" stroke="none" fill="#ffffff" fillOpacity={1} baseValue="dataMin" connectNulls={false} activeDot={false} isAnimationActive={!isLoggedIn} animationDuration={1500} animationEasing="ease-out" />
-              <Area type="natural" dataKey="elevation" stroke="#c49a6c" strokeWidth={4} fillOpacity={1} fill="url(#colorElevation)" baseValue="dataMin" connectNulls={false} activeDot={{ r: 6, fill: '#ffffff', stroke: '#c49a6c', strokeWidth: 4, style: { outline: 'none' } }} isAnimationActive={!isLoggedIn} animationDuration={1500} animationEasing="ease-out" />
+              <Area type="natural" dataKey="elevation" stroke="none" fill="var(--c-bg-primary)" fillOpacity={1} baseValue="dataMin" connectNulls={false} activeDot={false} isAnimationActive={!isLoggedIn} animationDuration={1500} animationEasing="ease-out" />
+              <Area type="natural" dataKey="elevation" stroke="#c49a6c" strokeWidth={4} fillOpacity={1} fill="url(#colorElevation)" baseValue="dataMin" connectNulls={false} activeDot={{ r: 6, fill: 'var(--c-bg-primary)', stroke: '#c49a6c', strokeWidth: 4, style: { outline: 'none' } }} isAnimationActive={!isLoggedIn} animationDuration={1500} animationEasing="ease-out" />
 
               <Brush
                 key={selectedStation}
                 dataKey="distance"
                 height={28}
                 stroke="#c49a6c"
-                fill="#f8fafc"
+                fill="var(--c-bg-secondary)"
                 travellerWidth={14}
                 tickFormatter={(val) => `${val} ม.`}
                 startIndex={brushIndex.startIndex}

@@ -10,15 +10,15 @@ const layers = [
   {
     category: 'ข้อมูลพื้นฐาน',
     items: [
-      { id: 'ขอบเขตชายหาด', name: 'ขอบเขตชายหาด', label: 'ขอบเขตชายหาด', kind: 'line', icon: '/assets/beach.png', iconSize: 44 },
-      { id: 'Contours', name: 'Contours', label: 'เส้นชั้นความสูง', kind: 'line', icon: '/assets/contour.png', iconSize: 40 },
-      { id: 'stream_flow_curved ', name: 'stream_flow_curved ', label: 'ทิศทางกระแสน้ำ', kind: 'line', icon: '/assets/flow.png', iconSize: 40 },
-      { id: 'RiskPoint', name: 'RiskPoint', label: 'จุดเสี่ยง', kind: 'point', icon: '/assets/risk.png', iconSize: 40 },
+      { id: 'ขอบเขตชายหาด', name: 'ขอบเขตชายหาด', label: 'ขอบเขตชายหาด', kind: 'line', icon: '/assets/beach.png', iconSize: 34 },
+      { id: 'Contours', name: 'Contours', label: 'เส้นชั้นความสูง', kind: 'line', icon: '/assets/contour.png', iconSize: 34 },
+      { id: 'stream_flow_curved ', name: 'stream_flow_curved ', label: 'ทิศทางกระแสน้ำ', kind: 'line', icon: '/assets/flow.png', iconSize: 28 },
+      { id: 'RiskPoint', name: 'RiskPoint', label: 'จุดเสี่ยง', kind: 'point', icon: '/assets/risk.png', iconSize: 30 },
       // เพิ่ม API คลื่นทะเลมาไว้ตรงนี้ (จะแสดงผลอยู่ใต้เส้นชั้นความสูง)
-      { id: 'swan_station', name: 'swan_station', label: 'ความสูงและทิศทางของคลื่นทะเล', kind: 'point', icon: '/assets/wave.png', iconSize: 45 },
-      { id: 'point_Lifeguard', name: 'point_Lifeguard', label: 'เจ้าหน้าที่ดูแลความปลอดภัยทางน้ำ', kind: 'point', icon: '/assets/lifebuoy.png', iconSize: 35 },
-      { id: 'ทางลาด_csv8', name: 'ทางลาด_csv8', label: 'ทางลาด', kind: 'point', icon: '/assets/ramp.png', iconSize: 35 },
-      { id: 'crossline', name: 'crossline', label: 'รูปตัดตามขวาง', kind: 'line', icon: '/assets/cross.png', iconSize: 35 },
+      { id: 'swan_station', name: 'swan_station', label: 'ความสูงและทิศทางของคลื่นทะเล', kind: 'point', icon: '/assets/wave.png', iconSize: 30 },
+      { id: 'point_Lifeguard', name: 'point_Lifeguard', label: 'เจ้าหน้าที่ดูแลความปลอดภัยทางน้ำ', kind: 'point', icon: '/assets/lifebuoy.png', iconSize: 28 },
+      { id: 'ทางลาด_csv8', name: 'ทางลาด_csv8', label: 'ทางลาด', kind: 'point', icon: '/assets/ramp.png', iconSize: 34 },
+      { id: 'crossline', name: 'crossline', label: 'รูปตัดตามขวาง', kind: 'line', icon: '/assets/cross.png', iconSize: 28 },
       //{ id: 'Interpolated points', name: 'Interpolated points', label: 'Interpolated points', kind: 'line', icon: '/assets/cross.png', iconSize: 35 },
     ]
   },
@@ -26,22 +26,22 @@ const layers = [
     category: 'คุณภาพน้ำ',
     items: [
       // อย่าลืมสร้าง Layer เหล่านี้ใน GeoServer ด้วยนะครับ
-    { id: 'WaterQuality_13032026', name: 'WaterQuality_13032026', label: '13 มี.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_28032026', name: 'WaterQuality_28032026', label: '28 มี.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_12042026', name: 'WaterQuality_12042026', label: '12 เม.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_27042026', name: 'WaterQuality_27042026', label: '27 เม.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_11052026', name: 'WaterQuality_11052026', label: '11 พ.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_26052026', name: 'WaterQuality_26052026', label: '26 พ.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+    { id: 'WaterQuality_13032026', name: 'WaterQuality_13032026', label: '13 มี.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
+    { id: 'WaterQuality_28032026', name: 'WaterQuality_28032026', label: '28 มี.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
+    { id: 'WaterQuality_12042026', name: 'WaterQuality_12042026', label: '12 เม.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
+    { id: 'WaterQuality_27042026', name: 'WaterQuality_27042026', label: '27 เม.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
+    { id: 'WaterQuality_11052026', name: 'WaterQuality_11052026', label: '11 พ.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
+    { id: 'WaterQuality_26052026', name: 'WaterQuality_26052026', label: '26 พ.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
     //{ id: '01WaterQuality_26052026', name: '01WaterQuality_26052026', label: '26 พ.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_11062026', name: 'WaterQuality_11062026', label: '11 มิ.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+    { id: 'WaterQuality_11062026', name: 'WaterQuality_11062026', label: '11 มิ.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
     //{ id: '02WaterQuality_11062026', name: '02WaterQuality_11062026', label: '11 มิ.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_27062026', name: 'WaterQuality_27062026', label: '27 มิ.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+    { id: 'WaterQuality_27062026', name: 'WaterQuality_27062026', label: '27 มิ.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
     //{ id: '03WaterQuality_27062026', name: '03WaterQuality_27062026', label: '27 มิ.ย. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_12072026', name: 'WaterQuality_12072026', label: '12 ก.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+    { id: 'WaterQuality_12072026', name: 'WaterQuality_12072026', label: '12 ก.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
     //{ id: '04WaterQuality_12072026', name: '04WaterQuality_12072026', label: '12 ก.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_23072026', name: 'WaterQuality_23072026', label: '23 ก.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+    { id: 'WaterQuality_23072026', name: 'WaterQuality_23072026', label: '23 ก.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
     //{ id: '05WaterQuality_23072026', name: '05WaterQuality_23072026', label: '23 ก.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
-    { id: 'WaterQuality_12082026', name: 'WaterQuality_12082026', label: '12 ส.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 30 },
+    { id: 'WaterQuality_12082026', name: 'WaterQuality_12082026', label: '12 ส.ค. 2026', kind: 'point', icon: '/assets/quality.png', iconSize: 24 },
     ]
   }
 ];

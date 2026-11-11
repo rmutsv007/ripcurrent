@@ -31,12 +31,12 @@ function ChartTooltip({ active, payload, label }) {
   if (!active || !payload || !payload.length) return null;
   return (
     <div style={{
-      background: 'rgba(15,23,42,0.92)', color: '#fff',
+      background: 'var(--c-popup-start)', color: 'var(--c-text)',
       borderRadius: 12, padding: '12px 16px', fontSize: 12,
-      boxShadow: '0 12px 32px rgba(0,0,0,0.25)', minWidth: 170,
-      border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(6px)',
+      boxShadow: 'var(--c-shadow-lg)', minWidth: 170,
+      border: '1px solid var(--c-border)', WebkitBackdropFilter: 'var(--blur-panel)', backdropFilter: 'var(--blur-panel)',
     }}>
-      <div style={{ fontWeight: 700, marginBottom: 8, color: '#f1f5f9', paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{label}</div>
+      <div style={{ fontWeight: 700, marginBottom: 8, color: 'var(--c-text-heading)', paddingBottom: 6, borderBottom: '1px solid var(--c-border)' }}>{label}</div>
       {payload
         .slice()
         .sort((a, b) => b.value - a.value)
@@ -211,13 +211,13 @@ const WaterQualityDashboard = () => {
   if (isLoading) {
     return (
       <div style={{
-        padding: '24px', background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
-        borderRadius: 16, border: '1px solid #e5e7eb', height: '100%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Sarabun, sans-serif'
+        padding: '24px', background: 'var(--c-bg-primary)',
+        borderRadius: 14, border: '1px solid var(--c-border)', height: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)'
       }}>
-        <div style={{ textAlign: 'center', color: '#64748b' }}>
-          <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
-          <h3 style={{ margin: 0, color: '#0f172a', fontWeight: 600 }}>กำลังดึงข้อมูลคุณภาพน้ำ...</h3>
+        <div style={{ textAlign: 'center', color: 'var(--c-text-secondary)' }}>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <h3 style={{ margin: 0, color: 'var(--c-text)', fontWeight: 600 }}>กำลังดึงข้อมูลคุณภาพน้ำ...</h3>
         </div>
       </div>
     );
@@ -226,13 +226,13 @@ const WaterQualityDashboard = () => {
   if (chartData.length === 0) {
     return (
       <div style={{
-        padding: '24px', background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
-        borderRadius: 16, border: '1px solid #e5e7eb', height: '100%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Sarabun, sans-serif'
+        padding: '24px', background: 'var(--c-bg-primary)',
+        borderRadius: 14, border: '1px solid var(--c-border)', height: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)'
       }}>
-        <div style={{ textAlign: 'center', color: '#64748b' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
-          <h3 style={{ margin: 0, color: '#0f172a', fontWeight: 600 }}>ไม่มีข้อมูล</h3>
+        <div style={{ textAlign: 'center', color: 'var(--c-text-secondary)' }}>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+          <h3 style={{ margin: 0, color: 'var(--c-text)', fontWeight: 600 }}>ไม่มีข้อมูล</h3>
           <p style={{ margin: '8px 0 0', fontSize: 13 }}>ไม่พบชั้นข้อมูลคุณภาพน้ำในระบบ</p>
         </div>
       </div>
@@ -242,11 +242,11 @@ const WaterQualityDashboard = () => {
   return (
     <div style={{
       padding: '24px',
-      background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
-      borderRadius: 16,
-      border: '1px solid #e5e7eb',
-      boxShadow: '0 4px 20px rgba(15, 23, 42, 0.06)',
-      fontFamily: 'Sarabun, sans-serif',
+      background: 'var(--c-bg-primary)',
+      borderRadius: 14,
+      border: '1px solid var(--c-border)',
+      boxShadow: 'var(--c-shadow-card)',
+      fontFamily: 'var(--font-ui)',
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
@@ -257,27 +257,26 @@ const WaterQualityDashboard = () => {
           transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
         }
         .wq-chart-card:hover {
-          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
-          transform: translateY(-2px);
-          border-color: #cbd5e1;
+          box-shadow: var(--c-shadow-lg);
+          border-color: var(--c-border-input);
         }
         .recharts-legend-item-text { font-weight: 600 !important; }
       `}</style>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
         <div style={{
           width: 38, height: 38, borderRadius: 10,
-          background: 'linear-gradient(135deg, #3b82f6, #1e3a8a)',
+          background: 'var(--c-accent)', color: '#fff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 18, flexShrink: 0, boxShadow: '0 6px 16px rgba(59,130,246,0.35)',
-        }}>📊</div>
+          flexShrink: 0,
+        }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
         <div>
           <h3 style={{
-            margin: 0, color: '#0f172a', fontSize: 17, fontWeight: 700,
-            fontFamily: 'Sarabun-Medium, sans-serif',
+            margin: 0, color: 'var(--c-text)', fontSize: 17, fontWeight: 600,
+            fontFamily: 'inherit',
           }}>
             แนวโน้มผลการตรวจเชื้อ E.coli และ Coliform
           </h3>
-          <p style={{ margin: '2px 0 0', color: '#64748b', fontSize: 12.5 }}>
+          <p style={{ margin: '2px 0 0', color: 'var(--c-text-secondary)', fontSize: 12.5 }}>
             หน่วย: CFU/100 ml · ข้อมูลจาก {locationsConfig.length} จุดตรวจสอบ
           </p>
         </div>
@@ -286,20 +285,20 @@ const WaterQualityDashboard = () => {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
         {/* กราฟที่ 1: E.coli */}
         <div className="wq-chart-card" style={{
-          flex: '1 1 45%', minWidth: 400, background: '#ffffff',
-          border: '1px solid #e5e7eb', borderRadius: 14, padding: '18px 18px 8px',
+          flex: '1 1 45%', minWidth: 400, background: 'var(--c-bg-secondary)',
+          border: '1px solid var(--c-border)', borderRadius: 14, padding: '18px 18px 8px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: '#3c83f6', boxShadow: '0 0 0 4px rgba(60,131,246,0.15)' }} />
-            <h4 style={{ margin: 0, color: '#0f172a', fontSize: 14.5, fontWeight: 700 }}>E.coli (CFU/100 ml)</h4>
+            <h4 style={{ margin: 0, color: 'var(--c-text)', fontSize: 14.5, fontWeight: 600 }}>E.coli (CFU/100 ml)</h4>
           </div>
           <ResponsiveContainer width="100%" height={340}>
             <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#eef2f7" />
-              <XAxis dataKey="date" tick={{ fontSize: 11.5, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+              <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="var(--c-border)" />
+              <XAxis dataKey="date" tick={{ fontSize: 11.5, fill: 'var(--c-text-secondary)' }} axisLine={{ stroke: 'var(--c-border)' }} tickLine={false} />
               <YAxis
                 scale="log" domain={[1, 100000]} ticks={logTicks}
-                tick={{ fontSize: 11.5, fill: '#64748b' }}
+                tick={{ fontSize: 11.5, fill: 'var(--c-text-secondary)' }}
                 tickFormatter={(tick) => tick === 1 ? '0' : tick.toLocaleString()} // สั่งว่าถ้าค่าคือ 1 ให้แสดงเป็น 0
                 axisLine={false} tickLine={false}
               />
@@ -320,8 +319,8 @@ const WaterQualityDashboard = () => {
                   stroke={loc.color}
                   strokeWidth={2.5}
                   strokeLinecap="round"
-                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2, style: { filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' } }}
+                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 2, stroke: 'var(--c-bg-secondary)' }}
+                  activeDot={{ r: 6, stroke: 'var(--c-bg-secondary)', strokeWidth: 2, style: { filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' } }}
                   connectNulls={true}
                   animationDuration={800}
                   animationEasing="ease-out"
@@ -333,20 +332,20 @@ const WaterQualityDashboard = () => {
 
         {/* กราฟที่ 2: Coliform */}
         <div className="wq-chart-card" style={{
-          flex: '1 1 45%', minWidth: 400, background: '#ffffff',
-          border: '1px solid #e5e7eb', borderRadius: 14, padding: '18px 18px 8px',
+          flex: '1 1 45%', minWidth: 400, background: 'var(--c-bg-secondary)',
+          border: '1px solid var(--c-border)', borderRadius: 14, padding: '18px 18px 8px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: '#7e22ce', boxShadow: '0 0 0 4px rgba(126,34,206,0.15)' }} />
-            <h4 style={{ margin: 0, color: '#0f172a', fontSize: 14.5, fontWeight: 700 }}>Coliform (CFU/100 ml)</h4>
+            <h4 style={{ margin: 0, color: 'var(--c-text)', fontSize: 14.5, fontWeight: 600 }}>Coliform (CFU/100 ml)</h4>
           </div>
           <ResponsiveContainer width="100%" height={340}>
             <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#eef2f7" />
-              <XAxis dataKey="date" tick={{ fontSize: 11.5, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+              <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="var(--c-border)" />
+              <XAxis dataKey="date" tick={{ fontSize: 11.5, fill: 'var(--c-text-secondary)' }} axisLine={{ stroke: 'var(--c-border)' }} tickLine={false} />
               <YAxis
                 scale="log" domain={[1, 100000]} ticks={logTicks}
-                tick={{ fontSize: 11.5, fill: '#64748b' }}
+                tick={{ fontSize: 11.5, fill: 'var(--c-text-secondary)' }}
                 tickFormatter={(tick) => tick === 1 ? '0' : tick.toLocaleString()} // สั่งว่าถ้าค่าคือ 1 ให้แสดงเป็น 0
                 axisLine={false} tickLine={false}
               />
@@ -367,8 +366,8 @@ const WaterQualityDashboard = () => {
                   stroke={loc.color}
                   strokeWidth={2.5}
                   strokeLinecap="round"
-                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2, style: { filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' } }}
+                  dot={{ r: 3.5, fill: loc.color, strokeWidth: 2, stroke: 'var(--c-bg-secondary)' }}
+                  activeDot={{ r: 6, stroke: 'var(--c-bg-secondary)', strokeWidth: 2, style: { filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' } }}
                   connectNulls={true}
                   animationDuration={800}
                   animationEasing="ease-out"

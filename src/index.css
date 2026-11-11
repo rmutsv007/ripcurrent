@@ -1,168 +1,201 @@
 /*
- * index.css — สไตล์หลักของแอปพลิเคชัน
+ * index.css — สไตล์หลักของแอปพลิเคชัน (ธีมสไตล์ macOS)
  * - CSS Custom Properties (ตัวแปรธีม) สำหรับ Dark/Light theme
  * - Global reset & base styles
  * - Circular reveal animation สำหรับเปลี่ยนธีม
  * - Scrollbar styling
+ * หมายเหตุ: ชื่อตัวแปรเดิมคงไว้ทั้งหมด เปลี่ยนเฉพาะค่าสี/เงา/วัสดุ
+ * ไฟล์สำรองก่อนปรับ: index.css.pre-macos.bak
  */
 
-/* ===== Theme Variables — ธีมมืด (Dark) ===== */
-/* ค่าเริ่มต้น (:root) และ [data-theme="dark"] ใช้สีเดียวกัน */
-:root,
-[data-theme="dark"] {
-  /* --- พื้นหลัง (Background) --- */
-  --c-bg-app: #0a0f1a;                        /* พื้นหลังแอปทั้งหมด */
-  --c-bg-primary: #0f172a;                    /* พื้นหลังหลัก (card, panel) */
-  --c-bg-secondary: #1e293b;                  /* พื้นหลังรอง */
-  --c-bg-hover: rgba(59,130,246,0.1);         /* พื้นหลัง hover state */
-  --c-bg-active: rgba(59,130,246,0.15);       /* พื้นหลัง active/selected state */
-  --c-bg-input: rgba(255,255,255,0.05);       /* พื้นหลังช่อง input */
-  --c-bg-input-focus: rgba(255,255,255,0.08); /* พื้นหลัง input เมื่อ focus */
-  --c-bg-subtle: rgba(255,255,255,0.03);      /* พื้นหลังอ่อนมาก */
-  --c-bg-icon: rgba(255,255,255,0.06);        /* พื้นหลังไอคอน */
-  --c-bg-icon-border: rgba(255,255,255,0.04); /* ขอบไอคอน */
+/* ===== ตัวแปรที่ใช้ร่วมกันทั้งสองธีม ===== */
+:root {
+  /* ไทย → Sarabun, อังกฤษ/ตัวเลข → ฟอนต์ระบบ (SF Pro บน Mac, Segoe UI บน Windows) */
+  --font-ui: 'Sarabun-Thai', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 
-  /* --- ตัวอักษร (Text) --- */
-  --c-text: #e2e8f0;                          /* สีตัวอักษรหลัก */
-  --c-text-secondary: #94a3b8;                /* สีตัวอักษรรอง */
-  --c-text-muted: rgba(148,163,184,0.5);      /* สีตัวอักษรจาง */
-  --c-text-heading: #f1f5f9;                  /* สีหัวข้อ */
+  /* วัสดุกึ่งโปร่งใสแบบ macOS (ใช้กับ sidebar/topbar/popup) */
+  --blur-panel: saturate(180%) blur(24px);
 
-  /* --- ขอบ (Border) --- */
-  --c-border: rgba(255,255,255,0.06);         /* ขอบทั่วไป */
-  --c-border-subtle: rgba(255,255,255,0.04);  /* ขอบบางมาก */
-  --c-border-input: rgba(255,255,255,0.1);    /* ขอบช่อง input */
+  /* มุมโค้ง */
+  --radius-s: 8px;
+  --radius-m: 10px;
+  --radius-l: 14px;
 
-  /* --- สีเน้น (Accent — สีน้ำเงิน) --- */
-  --c-accent: #3b82f6;                        /* สีเน้นหลัก */
-  --c-accent-light: #60a5fa;                  /* สีเน้นอ่อน */
-  --c-accent-text: #60a5fa;                   /* สีตัวอักษรเน้น */
-  --c-accent-bg: rgba(59,130,246,0.15);       /* พื้นหลังเน้น */
-  --c-accent-border: rgba(59,130,246,0.2);    /* ขอบเน้น */
-  --c-accent-bg-hover: rgba(59,130,246,0.25); /* พื้นหลังเน้น hover */
-  --c-accent-badge-bg: rgba(59,130,246,0.1);  /* พื้นหลัง badge */
-
-  /* --- สีเขียว (Green — สถานะสำเร็จ) --- */
-  --c-green: #4ade80;                         /* สีเขียวหลัก */
-  --c-green-bg: rgba(22,163,74,0.15);         /* พื้นหลังเขียว */
-  --c-green-border: rgba(22,163,74,0.2);      /* ขอบเขียว */
-  --c-green-bg-hover: rgba(22,163,74,0.25);   /* พื้นหลังเขียว hover */
-
-  /* --- เงา (Shadow) --- */
-  --c-shadow: 0 2px 12px rgba(0,0,0,0.3);     /* เงาปกติ */
-  --c-shadow-lg: 0 4px 24px rgba(0,0,0,0.2);  /* เงาใหญ่ */
-  --c-shadow-card: 0 4px 20px rgba(0,0,0,0.4);/* เงาการ์ด */
-
-  /* --- ส่วนประกอบ UI (Component-specific) --- */
-  --c-header-start: #0f172a;                  /* gradient header เริ่ม */
-  --c-header-end: #1e293b;                    /* gradient header สิ้นสุด */
-  --c-sidebar-start: #0f172a;                 /* gradient sidebar เริ่ม */
-  --c-sidebar-end: #1e293b;                   /* gradient sidebar สิ้นสุด */
-  --c-popup-start: #1e293b;                   /* gradient popup เริ่ม */
-  --c-popup-end: #0f172a;                     /* gradient popup สิ้นสุด */
-  --c-popup-tip: #1e293b;                     /* สีหัวลูกศร popup */
-  --c-tooltip-bg: rgba(15,23,42,0.95);        /* พื้นหลัง tooltip */
-  --c-tooltip-text: #e2e8f0;                  /* สีตัวอักษร tooltip */
-  --c-tooltip-border: rgba(59,130,246,0.2);   /* ขอบ tooltip */
-  --c-zoom-start: #1e293b;                    /* gradient ปุ่ม zoom เริ่ม */
-  --c-zoom-end: #0f172a;                      /* gradient ปุ่ม zoom สิ้นสุด */
-  --c-zoom-hover-start: #1e3a5f;              /* gradient ปุ่ม zoom hover เริ่ม */
-  --c-zoom-hover-end: #1e293b;                /* gradient ปุ่ม zoom hover สิ้นสุด */
-  --c-zoom-text: #60a5fa;                     /* สีตัวอักษร ±zoom */
-  --c-attribution-bg: rgba(15,23,42,0.8);     /* พื้นหลัง attribution */
-  --c-attribution-text: rgba(148,163,184,0.5);/* สี attribution */
-  --c-logo-filter: brightness(1.1);           /* ฟิลเตอร์โลโก้ */
-  --c-check-border: rgba(148,163,184,0.3);    /* ขอบ checkbox */
-  --c-layer-name: rgba(226,232,240,0.9);      /* สีชื่อ layer */
-  --c-layer-name-active: #fff;                /* สีชื่อ layer ที่เลือก */
-  --c-scrollbar: rgba(148,163,184,0.2);       /* สี scrollbar */
-  --c-scrollbar-hover: rgba(148,163,184,0.35);/* สี scrollbar hover */
-  --c-sidebar-header: rgba(148,163,184,0.8);  /* สีหัวข้อ sidebar */
-  --c-footer-text: rgba(148,163,184,0.5);     /* สีข้อความ footer */
-  --c-toggle-start: #1e40af;                  /* gradient ปุ่ม toggle เริ่ม */
-  --c-toggle-end: #1d4ed8;                    /* gradient ปุ่ม toggle สิ้นสุด */
-  --c-toggle-hover-start: #1d4ed8;            /* gradient ปุ่ม toggle hover */
-  --c-toggle-hover-end: #2563eb;
-  --c-toggle-text: #fff;                      /* สีตัวอักษรปุ่ม toggle */
+  /* จังหวะ animation */
+  --ease-out: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --dur: 0.18s;
 }
 
 /* ===== Theme Variables — ธีมสว่าง (Light) ===== */
-/* override ค่าตัวแปรทั้งหมดเมื่อ data-theme="light" */
 [data-theme="light"] {
+  color-scheme: light;
+
   /* --- พื้นหลัง (Background) --- */
-  --c-bg-app: #f0f4f8;                        /* พื้นหลังแอป — สีเทาอ่อน */
-  --c-bg-primary: #ffffff;                    /* พื้นหลังหลัก — ขาว */
-  --c-bg-secondary: #f1f5f9;                  /* พื้นหลังรอง */
-  --c-bg-hover: rgba(59,130,246,0.06);        /* hover — น้ำเงินจาง */
-  --c-bg-active: rgba(59,130,246,0.1);        /* active/selected */
-  --c-bg-input: #f1f5f9;                      /* พื้นหลัง input */
-  --c-bg-input-focus: #e8edf3;                /* พื้นหลัง input focus */
-  --c-bg-subtle: rgba(0,0,0,0.02);            /* พื้นหลังอ่อนมาก */
-  --c-bg-icon: rgba(0,0,0,0.04);              /* พื้นหลังไอคอน */
-  --c-bg-icon-border: rgba(0,0,0,0.06);       /* ขอบไอคอน */
+  --c-bg-app: #f5f5f7;
+  --c-bg-primary: #ffffff;
+  --c-bg-secondary: #f2f2f7;
+  --c-bg-hover: rgba(0,0,0,0.045);
+  --c-bg-active: rgba(0,122,255,0.12);
+  --c-bg-input: rgba(118,118,128,0.12);
+  --c-bg-input-focus: rgba(118,118,128,0.18);
+  --c-bg-subtle: rgba(0,0,0,0.025);
+  --c-bg-icon: rgba(0,0,0,0.04);
+  --c-bg-icon-border: transparent;
 
   /* --- ตัวอักษร (Text) --- */
-  --c-text: #1e293b;                          /* สีตัวอักษรหลัก — เข้ม */
-  --c-text-secondary: #64748b;                /* สีตัวอักษรรอง */
-  --c-text-muted: rgba(100,116,139,0.5);      /* สีจาง */
-  --c-text-heading: #0f172a;                  /* สีหัวข้อ */
+  --c-text: #1d1d1f;
+  --c-text-secondary: #6e6e73;
+  --c-text-muted: rgba(60,60,67,0.45);
+  --c-text-heading: #1d1d1f;
 
   /* --- ขอบ (Border) --- */
-  --c-border: #e2e8f0;                        /* ขอบทั่วไป */
-  --c-border-subtle: #f1f5f9;                 /* ขอบบาง */
-  --c-border-input: #d1d5db;                  /* ขอบ input */
+  --c-border: rgba(0,0,0,0.08);
+  --c-border-subtle: rgba(0,0,0,0.05);
+  --c-border-input: rgba(0,0,0,0.12);
 
-  /* --- สีเน้น (Accent) — สีน้ำเงินเข้มกว่า dark --- */
-  --c-accent: #2563eb;
-  --c-accent-light: #3b82f6;
-  --c-accent-text: #2563eb;
-  --c-accent-bg: rgba(37,99,235,0.08);
-  --c-accent-border: rgba(37,99,235,0.15);
-  --c-accent-bg-hover: rgba(37,99,235,0.12);
-  --c-accent-badge-bg: rgba(37,99,235,0.08);
+  /* --- สีเน้น (Accent — system blue) --- */
+  --c-accent: #007aff;
+  --c-accent-light: #3395ff;
+  --c-accent-text: #007aff;
+  --c-accent-bg: rgba(0,122,255,0.10);
+  --c-accent-border: rgba(0,122,255,0.18);
+  --c-accent-bg-hover: rgba(0,122,255,0.16);
+  --c-accent-badge-bg: rgba(0,122,255,0.10);
 
-  /* --- สีเขียว (Green) --- */
-  --c-green: #16a34a;
-  --c-green-bg: rgba(22,163,74,0.08);
-  --c-green-border: rgba(22,163,74,0.15);
-  --c-green-bg-hover: rgba(22,163,74,0.12);
+  /* --- สีเขียว (system green) --- */
+  --c-green: #248a3d;
+  --c-green-bg: rgba(52,199,89,0.14);
+  --c-green-border: rgba(52,199,89,0.25);
+  --c-green-bg-hover: rgba(52,199,89,0.20);
 
-  /* --- เงา (Shadow) — เบากว่า dark --- */
-  --c-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  --c-shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
-  --c-shadow-card: 0 2px 12px rgba(0,0,0,0.08);
+  /* --- เงา (Shadow) — บางและกระจาย --- */
+  --c-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --c-shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --c-shadow-card: 0 2px 10px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
+
+  /* --- ส่วนประกอบ UI (ไม่ใช้ gradient แล้ว: start = end) --- */
+  --c-header-start: rgba(255,255,255,0.72);
+  --c-header-end: rgba(255,255,255,0.72);
+  --c-sidebar-start: rgba(255,255,255,0.72);
+  --c-sidebar-end: rgba(255,255,255,0.72);
+  --c-popup-start: rgba(255,255,255,0.85);
+  --c-popup-end: rgba(255,255,255,0.85);
+  --c-popup-tip: rgba(255,255,255,0.85);
+  --c-tooltip-bg: rgba(255,255,255,0.88);
+  --c-tooltip-text: #1d1d1f;
+  --c-tooltip-border: rgba(0,0,0,0.08);
+  --c-zoom-start: rgba(255,255,255,0.85);
+  --c-zoom-end: rgba(255,255,255,0.85);
+  --c-zoom-hover-start: rgba(245,245,247,0.98);
+  --c-zoom-hover-end: rgba(245,245,247,0.98);
+  --c-zoom-text: #1d1d1f;
+  --c-attribution-bg: rgba(255,255,255,0.6);
+  --c-attribution-text: rgba(60,60,67,0.6);
+  --c-logo-filter: none;
+  --c-check-border: rgba(60,60,67,0.3);
+  --c-layer-name: #1d1d1f;
+  --c-layer-name-active: #1d1d1f;
+  --c-scrollbar: rgba(0,0,0,0.2);
+  --c-scrollbar-hover: rgba(0,0,0,0.35);
+  --c-sidebar-header: #6e6e73;
+  --c-footer-text: rgba(60,60,67,0.55);
+  --c-toggle-start: #e9e9ed;
+  --c-toggle-end: #e9e9ed;
+  --c-toggle-hover-start: #dcdce0;
+  --c-toggle-hover-end: #dcdce0;
+  --c-toggle-text: #1d1d1f;
+
+  /* --- Segmented control (ใช้กับ tab) --- */
+  --c-seg-track: rgba(118,118,128,0.12);
+  --c-seg-thumb: #ffffff;
+  --c-seg-thumb-shadow: 0 1px 3px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.04);
+}
+
+/* ===== Theme Variables — ธีมมืด (Dark) ===== */
+/* ใช้ :not([data-theme="light"]) เพื่อไม่ให้ทับธีมสว่าง (specificity เท่ากับ [data-theme] จึงต้องกันไว้) */
+:root:not([data-theme="light"]),
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* --- พื้นหลัง (Background) --- */
+  --c-bg-app: #1c1c1e;
+  --c-bg-primary: #2c2c2e;
+  --c-bg-secondary: #3a3a3c;
+  --c-bg-hover: rgba(255,255,255,0.07);
+  --c-bg-active: rgba(10,132,255,0.22);
+  --c-bg-input: rgba(118,118,128,0.24);
+  --c-bg-input-focus: rgba(118,118,128,0.32);
+  --c-bg-subtle: rgba(255,255,255,0.04);
+  --c-bg-icon: rgba(255,255,255,0.08);
+  --c-bg-icon-border: transparent;
+
+  /* --- ตัวอักษร (Text) --- */
+  --c-text: #f5f5f7;
+  --c-text-secondary: #98989d;
+  --c-text-muted: rgba(235,235,245,0.4);
+  --c-text-heading: #f5f5f7;
+
+  /* --- ขอบ (Border) --- */
+  --c-border: rgba(255,255,255,0.10);
+  --c-border-subtle: rgba(255,255,255,0.06);
+  --c-border-input: rgba(255,255,255,0.16);
+
+  /* --- สีเน้น (Accent — system blue dark) --- */
+  --c-accent: #0a84ff;
+  --c-accent-light: #409cff;
+  --c-accent-text: #409cff;
+  --c-accent-bg: rgba(10,132,255,0.20);
+  --c-accent-border: rgba(10,132,255,0.30);
+  --c-accent-bg-hover: rgba(10,132,255,0.30);
+  --c-accent-badge-bg: rgba(10,132,255,0.16);
+
+  /* --- สีเขียว (system green dark) --- */
+  --c-green: #30d158;
+  --c-green-bg: rgba(48,209,88,0.16);
+  --c-green-border: rgba(48,209,88,0.28);
+  --c-green-bg-hover: rgba(48,209,88,0.24);
+
+  /* --- เงา (Shadow) --- */
+  --c-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --c-shadow-lg: 0 8px 30px rgba(0,0,0,0.45);
+  --c-shadow-card: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 0.5px rgba(255,255,255,0.08);
 
   /* --- ส่วนประกอบ UI --- */
-  --c-header-start: #ffffff;                  /* gradient header — ขาว */
-  --c-header-end: #f8fafc;
-  --c-sidebar-start: #ffffff;                 /* gradient sidebar — ขาว */
-  --c-sidebar-end: #f8fafc;
-  --c-popup-start: #ffffff;                   /* popup */
-  --c-popup-end: #f8fafc;
-  --c-popup-tip: #ffffff;
-  --c-tooltip-bg: rgba(255,255,255,0.97);     /* tooltip — ขาว */
-  --c-tooltip-text: #1e293b;
-  --c-tooltip-border: #e2e8f0;
-  --c-zoom-start: #ffffff;                    /* ปุ่ม zoom */
-  --c-zoom-end: #f8fafc;
-  --c-zoom-hover-start: #f1f5f9;
-  --c-zoom-hover-end: #e2e8f0;
-  --c-zoom-text: #2563eb;
-  --c-attribution-bg: rgba(255,255,255,0.85); /* attribution */
-  --c-attribution-text: rgba(100,116,139,0.6);
-  --c-logo-filter: none;                      /* ไม่มีฟิลเตอร์โลโก้ */
-  --c-check-border: #d1d5db;                  /* ขอบ checkbox */
-  --c-layer-name: #374151;                    /* สีชื่อ layer */
-  --c-layer-name-active: #1e293b;
-  --c-scrollbar: rgba(148,163,184,0.3);       /* scrollbar */
-  --c-scrollbar-hover: rgba(148,163,184,0.5);
-  --c-sidebar-header: #64748b;                /* หัวข้อ sidebar */
-  --c-footer-text: rgba(100,116,139,0.6);     /* footer */
-  --c-toggle-start: #e2e8f0;                  /* ปุ่ม toggle — สีเทาอ่อน */
-  --c-toggle-end: #f1f5f9;
-  --c-toggle-hover-start: #d1d5db;
-  --c-toggle-hover-end: #e2e8f0;
-  --c-toggle-text: #1e293b;                   /* สีตัวอักษร toggle */
+  --c-header-start: rgba(44,44,46,0.72);
+  --c-header-end: rgba(44,44,46,0.72);
+  --c-sidebar-start: rgba(44,44,46,0.72);
+  --c-sidebar-end: rgba(44,44,46,0.72);
+  --c-popup-start: rgba(44,44,46,0.86);
+  --c-popup-end: rgba(44,44,46,0.86);
+  --c-popup-tip: rgba(44,44,46,0.86);
+  --c-tooltip-bg: rgba(44,44,46,0.9);
+  --c-tooltip-text: #f5f5f7;
+  --c-tooltip-border: rgba(255,255,255,0.10);
+  --c-zoom-start: rgba(58,58,60,0.85);
+  --c-zoom-end: rgba(58,58,60,0.85);
+  --c-zoom-hover-start: rgba(72,72,74,0.95);
+  --c-zoom-hover-end: rgba(72,72,74,0.95);
+  --c-zoom-text: #f5f5f7;
+  --c-attribution-bg: rgba(28,28,30,0.6);
+  --c-attribution-text: rgba(235,235,245,0.5);
+  --c-logo-filter: brightness(1.1);
+  --c-check-border: rgba(235,235,245,0.3);
+  --c-layer-name: rgba(245,245,247,0.9);
+  --c-layer-name-active: #ffffff;
+  --c-scrollbar: rgba(235,235,245,0.2);
+  --c-scrollbar-hover: rgba(235,235,245,0.35);
+  --c-sidebar-header: rgba(235,235,245,0.6);
+  --c-footer-text: rgba(235,235,245,0.4);
+  --c-toggle-start: #3a3a3c;
+  --c-toggle-end: #3a3a3c;
+  --c-toggle-hover-start: #48484a;
+  --c-toggle-hover-end: #48484a;
+  --c-toggle-text: #f5f5f7;
+
+  /* --- Segmented control (ใช้กับ tab) --- */
+  --c-seg-track: rgba(118,118,128,0.24);
+  --c-seg-thumb: #636366;
+  --c-seg-thumb-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.06);
 }
 
 /* ===== Global Styles — รีเซ็ตและสไตล์พื้นฐาน ===== */
@@ -199,51 +232,61 @@ html, body, #root {
   height: 100%;
 }
 
-/* สไตล์ body — ฟอนต์ Sarabun, สีจาก theme variable */
+/* สไตล์ body — ฟอนต์ไทย Sarabun + ฟอนต์ระบบสำหรับอังกฤษ, น้ำหนักปกติ 400 */
 body {
   margin: 0;
-  font-family: 'Sarabun-Medium', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
-  background: var(--c-bg-app);  /* สีพื้นหลักจาก theme */
-  color: var(--c-text);         /* สีตัวอักษรจาก theme */
-  -webkit-font-smoothing: antialiased;      /* ตัวอักษรคมชัด */
+  font-family: var(--font-ui);
+  font-weight: 400;
+  background: var(--c-bg-app);
+  color: var(--c-text);
+  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;             /* ระยะห่างบรรทัด */
+  line-height: 1.5;
 }
 
 /* สไตล์ <code> — แสดงโค้ดในกรอบสี */
 code {
-  font-family: 'Courier New', monospace;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   background: var(--c-bg-icon);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.9em;
-  color: var(--c-accent-light);
+  color: var(--c-accent-text);
 }
 
-/* ===== Scrollbar — แถบเลื่อนแบบบาง ===== */
+/* ===== Scrollbar — แถบเลื่อนบางแบบ macOS ===== */
 ::-webkit-scrollbar {
-  width: 5px;                   /* ความกว้างแนวตั้ง */
-  height: 5px;                  /* ความสูงแนวนอน */
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;      /* พื้นหลังโปร่งใส */
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--c-scrollbar); /* สีแถบเลื่อน */
-  border-radius: 4px;
+  background: var(--c-scrollbar);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;   /* ทำให้แถบดูบางและลอย */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--c-scrollbar-hover); /* สีเมื่อ hover */
+  background: var(--c-scrollbar-hover);
+  background-clip: content-box;
 }
 
 /* ===== Button/Input Resets — สืบทอดฟอนต์ ===== */
 button {
-  font-family: inherit;         /* ใช้ฟอนต์เดียวกับ parent */
+  font-family: inherit;
 }
 
 input, textarea, select {
-  font-family: inherit;         /* ใช้ฟอนต์เดียวกับ parent */
+  font-family: inherit;
+}
+
+/* ===== Focus ring แบบ macOS ===== */
+:focus-visible {
+  outline: 3px solid var(--c-accent-border);
+  outline-offset: 1px;
 }

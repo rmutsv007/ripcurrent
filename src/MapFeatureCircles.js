@@ -63,13 +63,13 @@ function buildPopupContent(feature, lat, lng, onViewDetail) {
   const wrapper = document.createElement('div');
   wrapper.style.minWidth = '220px';
   wrapper.style.textAlign = 'left';
-  wrapper.style.fontFamily = 'Sarabun-Medium, sans-serif';
+  wrapper.style.fontFamily = 'var(--font-ui)';
   wrapper.style.color = 'var(--c-text)';
 
   // === ชื่อฟาร์ม (หัวข้อ) ===
   const title = document.createElement('div');
   title.textContent = feature?.properties?.location || '-';
-  title.style.fontWeight = 'bold';
+  title.style.fontWeight = '600';
   title.style.fontSize = '16px';
   title.style.textAlign = 'center';
   title.style.marginBottom = '8px';
@@ -114,7 +114,7 @@ function buildPopupContent(feature, lat, lng, onViewDetail) {
   viewBtn.style.fontWeight = '600';
   viewBtn.style.fontSize = '13px';
   viewBtn.style.cursor = 'pointer';
-  viewBtn.style.fontFamily = 'Sarabun-Medium, sans-serif';
+  viewBtn.style.fontFamily = 'var(--font-ui)';
   viewBtn.style.transition = 'all 0.2s';
   // เอฟเฟกต์ hover
   viewBtn.addEventListener('mouseenter', () => { viewBtn.style.background = 'var(--c-green-bg-hover)'; });

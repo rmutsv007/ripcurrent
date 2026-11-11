@@ -49,19 +49,19 @@ const FeatureDetail = ({ feature, onBack, onZoomToFeature, authToken }) => {
     <div style={{
       background: 'var(--c-bg-primary)',
       border: '1px solid var(--c-border)',
-      borderRadius: 16,
+      borderRadius: 14,
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      fontFamily: 'Sarabun-Medium, sans-serif',
+      fontFamily: 'var(--font-ui)',
       overflow: 'hidden',
-      boxShadow: 'var(--c-shadow-lg)',
+      boxShadow: 'var(--c-shadow-card)',
     }}>
       {/* === ส่วนหัว: ปุ่มกลับ + ชื่อหน้า === */}
       <div style={{
         height: 60,
         minHeight: 60,
-        fontWeight: 700,
+        fontWeight: 600,
         fontSize: 16,
         color: 'var(--c-text)',
         padding: '0 20px',
@@ -69,21 +69,21 @@ const FeatureDetail = ({ feature, onBack, onZoomToFeature, authToken }) => {
         alignItems: 'center',
         gap: 12,
         borderBottom: '1px solid var(--c-border)',
-        background: 'linear-gradient(135deg, var(--c-bg-secondary) 0%, var(--c-bg-primary) 100%)',
+        background: 'transparent',
       }}>
         {/* ปุ่มกลับ — กลับไปหน้าตาราง */}
         <button
           onClick={onBack}
           style={{
             background: 'var(--c-accent-bg)',
-            color: 'var(--c-accent-light)',
+            color: 'var(--c-accent-text)',
             border: '1px solid var(--c-accent-border)',
             borderRadius: 8,
             padding: '6px 14px',
             fontWeight: 600,
             fontSize: 13,
             cursor: 'pointer',
-            fontFamily: 'Sarabun-Medium, sans-serif',
+            fontFamily: 'var(--font-ui)',
             display: 'flex',
             alignItems: 'center',
             gap: 6,
@@ -108,7 +108,7 @@ const FeatureDetail = ({ feature, onBack, onZoomToFeature, authToken }) => {
           textAlign: 'center',
           marginBottom: 20,
           padding: '20px 16px',
-          background: 'linear-gradient(135deg, var(--c-accent-bg) 0%, var(--c-bg-subtle) 100%)',
+          background: 'var(--c-bg-subtle)',
           borderRadius: 12,
           border: '1px solid var(--c-accent-border)',
         }}>
@@ -182,7 +182,7 @@ const FeatureDetail = ({ feature, onBack, onZoomToFeature, authToken }) => {
                 fontSize: 14,
                 border: '1px solid var(--c-green-border)',
                 cursor: 'pointer',
-                fontFamily: 'Sarabun-Medium, sans-serif',
+                fontFamily: 'var(--font-ui)',
                 transition: 'all 0.2s',
               }}
               onMouseOver={e => { e.currentTarget.style.background = 'var(--c-green-bg-hover)'; }}

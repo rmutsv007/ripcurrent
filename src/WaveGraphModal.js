@@ -82,23 +82,23 @@ const WaveGraphModal = ({ feature, onClose }) => {
         
       return (
         <div style={{ 
-          background: 'rgba(255, 255, 255, 0.95)', 
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(229, 231, 235, 0.5)', 
+          background: 'var(--c-popup-start)', 
+          WebkitBackdropFilter: 'var(--blur-panel)', backdropFilter: 'var(--blur-panel)',
+          border: '1px solid var(--c-border)', 
           padding: '12px 16px', 
           borderRadius: '12px', 
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' 
+          boxShadow: 'var(--c-shadow-lg)' 
         }}>
-          <p style={{ margin: '0 0 6px 0', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+          <p style={{ margin: '0 0 6px 0', fontSize: '13px', color: 'var(--c-text-secondary)', fontWeight: 500 }}>
             {`${dateStr} ${label.split(' ').pop()} น.`}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}></div>
-            <p style={{ margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>
-              {dataPoint.height.toFixed(2)} <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748b' }}>เมตร</span>
+            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--c-accent)' }}></div>
+            <p style={{ margin: 0, fontSize: '15px', color: 'var(--c-text)', fontWeight: 600 }}>
+              {dataPoint.height.toFixed(2)} <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--c-text-secondary)' }}>เมตร</span>
             </p>
           </div>
-          <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569' }}>
+          <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--c-text-secondary)' }}>
             ทิศทางคลื่น: {Number.isFinite(dataPoint.direction) ? `${Math.round(dataPoint.direction)}°` : '-'}
           </p>
         </div>
@@ -110,17 +110,20 @@ const WaveGraphModal = ({ feature, onClose }) => {
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-      backgroundColor: 'rgba(15, 23, 42, 0.4)', 
-      backdropFilter: 'blur(4px)', 
+      backgroundColor: 'rgba(0, 0, 0, 0.35)', 
+      WebkitBackdropFilter: 'blur(8px)',
+      backdropFilter: 'blur(8px)', 
       zIndex: 9999,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'Sarabun-Medium, sans-serif'
+      fontFamily: 'var(--font-ui)'
     }}>
       <div style={{
-        background: '#ffffff', width: '92%', maxWidth: '850px',
-        borderRadius: '24px', 
+        background: 'var(--c-popup-start)', width: '92%', maxWidth: '850px',
+        WebkitBackdropFilter: 'var(--blur-panel)', backdropFilter: 'var(--blur-panel)',
+        border: '1px solid var(--c-border)', color: 'var(--c-text)',
+        borderRadius: '18px', 
         padding: '24px 32px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', 
+        boxShadow: 'var(--c-shadow-lg)', 
         position: 'relative'
       }}>
         
@@ -128,35 +131,35 @@ const WaveGraphModal = ({ feature, onClose }) => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-              <div style={{ background: '#eff6ff', padding: '8px', borderRadius: '12px', color: '#3b82f6', display: 'flex' }}>
+              <div style={{ background: 'var(--c-accent-bg)', padding: '8px', borderRadius: '10px', color: 'var(--c-accent-text)', display: 'flex' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <path d="M2 13 Q 7 7, 12 13 T 22 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none" />
                   <path d="M2 18 Q 7 12, 12 18 T 22 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none" />
                 </svg>
               </div>
-              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--c-text)' }}>
                 ความสูงและทิศทางของคลื่นทะเล
               </h2>
             </div>
-            <p style={{ margin: '0 0 0 46px', fontSize: '14px', color: '#64748b' }}>{stationName}</p>
+            <p style={{ margin: '0 0 0 46px', fontSize: '14px', color: 'var(--c-text-secondary)' }}>{stationName}</p>
           </div>
 
           <button onClick={onClose} style={{
-            background: '#f1f5f9', border: 'none', color: '#64748b',
+            background: 'var(--c-bg-input)', border: 'none', color: 'var(--c-text-secondary)',
             width: '36px', height: '36px', borderRadius: '50%',
             fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.2s'
           }}
-          onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0f172a'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#64748b'; }}
+          onMouseOver={(e) => { e.currentTarget.style.background = 'var(--c-bg-input-focus)'; e.currentTarget.style.color = 'var(--c-text)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = 'var(--c-bg-input)'; e.currentTarget.style.color = 'var(--c-text-secondary)'; }}
           >
             ✕
           </button>
         </div>
 
         {/* ตัวเลือกวันที่ */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', padding: '16px', background: '#f8fafc', borderRadius: '16px' }}>
-          <div style={{ fontSize: '14px', color: '#475569', fontWeight: 600 }}>ช่วงเวลา:</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', padding: '16px', background: 'var(--c-bg-subtle)', borderRadius: '12px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--c-text-secondary)', fontWeight: 600 }}>ช่วงเวลา:</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input 
               type="date" 
@@ -167,9 +170,9 @@ const WaveGraphModal = ({ feature, onClose }) => {
                 setStartDate(e.target.value);
                 if (endDate < e.target.value) setEndDate(e.target.value);
               }} 
-              style={{ padding: '8px 16px', border: 'none', background: '#ffffff', borderRadius: '20px', color: '#334155', fontWeight: 600, outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }} 
+              style={{ padding: '8px 14px', border: 'none', background: 'var(--c-bg-input)', borderRadius: '8px', color: 'var(--c-text)', fontWeight: 500, outline: 'none', boxShadow: 'none', fontFamily: 'inherit' }} 
             />
-            <span style={{ color: '#94a3b8' }}>—</span>
+            <span style={{ color: 'var(--c-text-muted)' }}>—</span>
             <input 
               type="date" 
               value={endDate} 
@@ -179,29 +182,29 @@ const WaveGraphModal = ({ feature, onClose }) => {
                 setEndDate(e.target.value);
                 if (startDate > e.target.value) setStartDate(e.target.value);
               }} 
-              style={{ padding: '8px 16px', border: 'none', background: '#ffffff', borderRadius: '20px', color: '#334155', fontWeight: 600, outline: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }} 
+              style={{ padding: '8px 14px', border: 'none', background: 'var(--c-bg-input)', borderRadius: '8px', color: 'var(--c-text)', fontWeight: 500, outline: 'none', boxShadow: 'none', fontFamily: 'inherit' }} 
             />
           </div>
         </div>
 
-        <h4 style={{ textAlign: 'center', margin: '0 0 16px 0', fontSize: '18px', color: '#1e293b', fontWeight: 700 }}>ความสูงคลื่น</h4>
+        <h4 style={{ textAlign: 'center', margin: '0 0 16px 0', fontSize: '18px', color: 'var(--c-text)', fontWeight: 600 }}>ความสูงคลื่น</h4>
 
         {/* พื้นที่กราฟ */}
         <div style={{ width: '100%', height: '340px', position: 'relative' }}>
           {loading && (
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 10, borderRadius: '12px' }}>
-              <div style={{ color: '#3b82f6', fontWeight: 600, fontSize: '15px' }}>กำลังโหลดข้อมูลพยากรณ์...</div>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--c-popup-start)', zIndex: 10, borderRadius: '12px' }}>
+              <div style={{ color: 'var(--c-accent-text)', fontWeight: 600, fontSize: '15px' }}>กำลังโหลดข้อมูลพยากรณ์...</div>
             </div>
           )}
           
           {error && !loading && (
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', zIndex: 10, textAlign: 'center', background: '#fef2f2', borderRadius: '16px', border: '1px solid #fee2e2' }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff3b30', zIndex: 10, textAlign: 'center', background: 'rgba(255, 59, 48, 0.10)', borderRadius: '12px', border: '1px solid rgba(255, 59, 48, 0.25)' }}>
               <p style={{ fontWeight: 600 }}>{error}</p>
             </div>
           )}
 
           {!loading && !error && graphData.length === 0 && (
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', zIndex: 10, background: '#f8fafc', borderRadius: '16px' }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text-secondary)', zIndex: 10, background: 'var(--c-bg-subtle)', borderRadius: '12px' }}>
               ไม่มีข้อมูลพยากรณ์ในช่วงเวลาที่เลือก
             </div>
           )}
@@ -211,42 +214,42 @@ const WaveGraphModal = ({ feature, onClose }) => {
               
               <defs>
                 <linearGradient id="colorHeight" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#007aff" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#007aff" stopOpacity={0}/>
                 </linearGradient>
               </defs>
 
-              <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--c-border)" />
               
               {/* แกน X */}
               <XAxis 
                 dataKey="time" 
                 axisLine={true} 
                 tickLine={true} 
-                tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} 
+                tick={{ fontSize: 12, fill: 'var(--c-text-secondary)', fontWeight: 500 }} 
                 dy={10}
                 ticks={graphData.map(d => d.time).filter(t => t.includes('00:00') || t.includes('04:00') || t.includes('08:00') || t.includes('12:00') || t.includes('16:00') || t.includes('20:00'))}
-                label={{ value: 'เวลา', position: 'bottom', offset: 0, fontSize: 14, fill: '#475569', fontWeight: 600 }}
+                label={{ value: 'เวลา', position: 'bottom', offset: 0, fontSize: 14, fill: 'var(--c-text-secondary)', fontWeight: 600 }}
               />
               
               {/* แกน Y */}
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }} 
+                tick={{ fontSize: 12, fill: 'var(--c-text-secondary)', fontWeight: 500 }} 
                 domain={[0, 'auto']}
-                label={{ value: 'ความสูง (ม.)', angle: -90, position: 'insideLeft', fontSize: 14, fill: '#475569', fontWeight: 600 }}
+                label={{ value: 'ความสูง (ม.)', angle: -90, position: 'insideLeft', fontSize: 14, fill: 'var(--c-text-secondary)', fontWeight: 600 }}
               />
               
-              <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--c-border-input)', strokeWidth: 1, strokeDasharray: '4 4' }} />
               
               {/* สัญลักษณ์ Legend ด้านล่างกราฟ */}
               <Legend 
                 verticalAlign="bottom" 
                 height={36} 
                 content={() => (
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', fontSize: '14px', color: '#475569', fontWeight: 'bold' }}>
-                    <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: '#3b82f6', marginRight: '8px' }}></span>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+                    <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: '#007aff', marginRight: '8px' }}></span>
                     ความสูงคลื่น
                   </div>
                 )} 
@@ -255,11 +258,11 @@ const WaveGraphModal = ({ feature, onClose }) => {
               <Area 
                 type="monotone" 
                 dataKey="height" 
-                stroke="#2563eb" 
+                stroke="#007aff" 
                 strokeWidth={3} 
                 fillOpacity={1} 
                 fill="url(#colorHeight)" 
-                activeDot={{ r: 6, fill: '#ffffff', stroke: '#2563eb', strokeWidth: 2 }} 
+                activeDot={{ r: 6, fill: 'var(--c-bg-primary)', stroke: '#007aff', strokeWidth: 2 }} 
                 isAnimationActive={true}
                 animationDuration={1500}
                 animationEasing="ease-out"

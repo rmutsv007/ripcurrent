@@ -4,15 +4,17 @@
 
 /* === Header หลัก (Desktop & Base) === */
 .app-header {
-  height: 56px;
-  min-height: 56px;
-  background: linear-gradient(135deg, var(--c-header-start) 0%, var(--c-header-end) 100%);
+  height: 52px;
+  min-height: 52px;
+  background: var(--c-header-start);
+  -webkit-backdrop-filter: var(--blur-panel);
+  backdrop-filter: var(--blur-panel);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
   border-bottom: 1px solid var(--c-border);
-  box-shadow: var(--c-shadow);
+  box-shadow: none;
   z-index: 1000;
   position: relative;
   gap: 12px;
@@ -46,9 +48,9 @@
   font-size: 16px;
   margin: 0;
   color: var(--c-text);
-  font-family: 'Sarabun-Medium', sans-serif;
+  font-family: var(--font-ui);
   font-weight: 600;
-  letter-spacing: 0.2px;
+  letter-spacing: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -69,15 +71,15 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  background: var(--c-bg-subtle);
-  border: 1px solid var(--c-border);
-  padding: 6px 10px;
+  background: var(--c-bg-input);
+  border: none;
+  padding: 5px 10px;
   border-radius: 20px;
   font-size: 12px;
   color: var(--c-text-secondary);
-  font-family: 'Sarabun-Medium', sans-serif;
-  font-weight: 600;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  box-shadow: none;
   cursor: default;
   white-space: nowrap;
 }
@@ -96,8 +98,16 @@
 .sidebar-aside {
   height: 100%;
   overflow-y: auto;
+  padding: 14px 0 14px 14px;   /* ขอบห่างให้ sidebar เป็นการ์ดลอย */
   transition: width 0.25s ease, min-width 0.25s ease;
   z-index: 100;
+}
+
+/* sidebar เป็นการ์ดมุมโค้งแบบ macOS */
+.sidebar-aside .sidebar-container {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-l);
+  box-shadow: var(--c-shadow-card);
 }
 
 .map-section {
@@ -113,7 +123,7 @@
 .map-frame {
   height: 100%;
   width: 100%;
-  border-radius: 12px;
+  border-radius: var(--radius-l);
   overflow: hidden;
   box-shadow: var(--c-shadow-card);
   border: 1px solid var(--c-border);
@@ -203,6 +213,7 @@
   /* Sidebar เต็มจอแบบ Overlay บนมือถือ */
   .sidebar-aside {
     position: fixed;
+    padding: 0;
     top: 0;
     left: 0;
     bottom: 0;
@@ -218,6 +229,13 @@
 
   .sidebar-aside.drawer-open {
     transform: translateX(0);
+  }
+
+  /* บนมือถือ sidebar เต็มจอ ไม่ต้องเป็นการ์ด */
+  .sidebar-aside .sidebar-container {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .mobile-drawer-backdrop.active {
@@ -236,9 +254,9 @@
     padding: 12px 16px;
     background: var(--c-bg-secondary);
     border-bottom: 1px solid var(--c-border);
-    font-family: 'Sarabun-Medium', sans-serif;
+    font-family: var(--font-ui);
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--c-text);
   }
 
@@ -326,9 +344,11 @@
     height: calc(52px + env(safe-area-inset-bottom, 0px));
     min-height: calc(52px + env(safe-area-inset-bottom, 0px));
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: var(--c-bg-primary);
+    background: var(--c-header-start);
+    -webkit-backdrop-filter: var(--blur-panel);
+    backdrop-filter: var(--blur-panel);
     border-top: 1px solid var(--c-border);
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+    box-shadow: none;
     z-index: 1000;
     box-sizing: border-box;
     flex-shrink: 0;
@@ -344,7 +364,7 @@
     border: none;
     cursor: pointer;
     color: var(--c-text-secondary);
-    font-family: 'Sarabun-Medium', sans-serif;
+    font-family: var(--font-ui);
     font-size: 11px;
     font-weight: 500;
     gap: 2px;
@@ -355,13 +375,18 @@
     font-size: 18px;
   }
 
+  .mobile-nav-item .nav-icon {
+    display: inline-flex;
+    align-items: center;
+  }
+
   .mobile-nav-item.active {
-    color: #3b82f6;
-    font-weight: 700;
+    color: var(--c-accent-text);
+    font-weight: 600;
   }
 
   .mobile-nav-item.active .nav-icon {
-    transform: scale(1.1);
+    transform: none;
   }
 
   .leaflet-control-zoom {

@@ -357,7 +357,7 @@ const Sidebar = ({ onLayerChange, onOrthoChange, onRainChange, onWindChange, col
           </div>
           {!collapsed && (
             <>
-              <span className="layer-name">เรดาร์ฝน (Longdo Weather)</span>
+              <span className="layer-name">เรดาร์ฝน</span>
               <div className="layer-check">
                 <CheckIcon />
               </div>

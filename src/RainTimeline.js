@@ -37,8 +37,8 @@ const RainTimeline = ({ frames, currentIndex, onSeek, playing, onTogglePlay, spe
       style={{
         position: 'absolute', bottom: 24, zIndex: 1000,
         ...(centered ? { left: '50%', transform: 'translateX(-50%)' } : { left: 10 }),
-        background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', borderRadius: 10,
-        padding: '10px 16px', boxShadow: 'var(--c-shadow-lg)', fontFamily: 'Sarabun, sans-serif',
+        background: 'var(--c-popup-start)', WebkitBackdropFilter: 'var(--blur-panel)', backdropFilter: 'var(--blur-panel)', border: '1px solid var(--c-border)', borderRadius: 14,
+        padding: '10px 16px', boxShadow: 'var(--c-shadow-lg)', fontFamily: 'var(--font-ui)',
         width: 320, display: 'flex', flexDirection: 'column', gap: 6,
       }}
     >
@@ -52,10 +52,10 @@ const RainTimeline = ({ frames, currentIndex, onSeek, playing, onTogglePlay, spe
               key={s}
               onClick={() => onSpeedChange(s)}
               style={{
-                fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6,
-                border: '1px solid var(--c-border)', cursor: 'pointer',
+                fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 6,
+                border: 'none', cursor: 'pointer',
                 background: speed === s ? 'var(--c-accent-bg)' : 'var(--c-bg-icon)',
-                color: speed === s ? 'var(--c-accent-light)' : 'var(--c-text-secondary)',
+                color: speed === s ? 'var(--c-accent-text)' : 'var(--c-text-secondary)',
               }}
             >
               {s}x
@@ -69,9 +69,9 @@ const RainTimeline = ({ frames, currentIndex, onSeek, playing, onTogglePlay, spe
           onClick={onTogglePlay}
           aria-label={playing ? 'หยุดชั่วคราว' : 'เล่นภาพเคลื่อนไหว'}
           style={{
-            width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--c-border)',
-            background: 'var(--c-bg-icon)', cursor: 'pointer', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', flexShrink: 0, color: 'var(--c-accent-light)', padding: 0,
+            width: 28, height: 28, borderRadius: '50%', border: 'none',
+            background: 'var(--c-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', flexShrink: 0, color: '#fff', padding: 0,
           }}
         >
           {playing ? (

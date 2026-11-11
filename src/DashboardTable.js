@@ -74,13 +74,13 @@ const DashboardTable = ({ points, onSelectFeature }) => {
     <div className="dashboard-table-container" style={{ 
       background: 'var(--c-bg-primary)',         
       border: '1px solid var(--c-border)',        
-      borderRadius: 16,                           
+      borderRadius: 14,                           
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column', 
-      fontFamily: 'Sarabun-Medium, sans-serif',   
+      fontFamily: 'var(--font-ui)',   
       overflow: 'hidden',
-      boxShadow: 'var(--c-shadow-lg)',            
+      boxShadow: 'var(--c-shadow-card)',            
     }}>
       <style>{`
         @font-face {
@@ -90,7 +90,7 @@ const DashboardTable = ({ points, onSelectFeature }) => {
           font-style: normal;
         }
         .dashboard-table-container, .dashboard-table-container table, .dashboard-table-container th, .dashboard-table-container td {
-          font-family: 'Sarabun-Medium', sans-serif !important;
+          font-family: var(--font-ui) !important;
         }
         .table-scroll::-webkit-scrollbar {
           width: 5px;
@@ -120,27 +120,27 @@ const DashboardTable = ({ points, onSelectFeature }) => {
 
       {/* === ส่วนหัวตาราง === */}
       <div style={{
-        minHeight: 56, fontWeight: 700, fontSize: 16, color: 'var(--c-text)',
+        minHeight: 56, fontWeight: 600, fontSize: 16, color: 'var(--c-text)',
         padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'space-between',
         flexWrap: 'wrap',
-        borderBottom: '1px solid var(--c-border)', background: 'linear-gradient(135deg, var(--c-bg-secondary) 0%, var(--c-bg-primary) 100%)',
+        borderBottom: '1px solid var(--c-border)', background: 'transparent',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, whiteSpace: 'nowrap' }}>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="1" y="1" width="18" height="18" rx="3" stroke="#3b82f6" strokeWidth="1.5" fill="none"/>
-            <line x1="1" y1="7" x2="19" y2="7" stroke="#3b82f6" strokeWidth="1.2"/>
-            <line x1="7" y1="7" x2="7" y2="19" stroke="#3b82f6" strokeWidth="1.2"/>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ color: 'var(--c-accent)' }}>
+            <rect x="1" y="1" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+            <line x1="1" y1="7" x2="19" y2="7" stroke="currentColor" strokeWidth="1.2"/>
+            <line x1="7" y1="7" x2="7" y2="19" stroke="currentColor" strokeWidth="1.2"/>
           </svg>
           <span style={{ letterSpacing: 0.3, whiteSpace: 'nowrap' }}>ข้อมูลชายหาดชลาทัศน์</span>
           <span style={{
-            background: 'var(--c-accent-bg)', color: 'var(--c-accent-light)', fontSize: 11,
+            background: 'var(--c-accent-bg)', color: 'var(--c-accent-text)', fontSize: 11,
             fontWeight: 600, padding: '2px 8px', borderRadius: 6, marginLeft: 2, whiteSpace: 'nowrap'
           }}>{totalRows} รายการ</span>
         </div>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: '1 1 160px', maxWidth: 280 }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, pointerEvents: 'none' }}>
-            <circle cx="6.5" cy="6.5" r="5" stroke="#64748b" strokeWidth="1.5" fill="none"/>
-            <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round"/>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: 'absolute', left: 10, pointerEvents: 'none', color: 'var(--c-text-secondary)' }}>
+            <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+            <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
           <input
             type="text"
@@ -149,7 +149,7 @@ const DashboardTable = ({ points, onSelectFeature }) => {
             onChange={e => { setSearchValue(e.target.value); setPage(0); }}
             style={{
               fontSize: 13, padding: '7px 12px 7px 32px', borderRadius: 8, border: '1px solid var(--c-border-input)',
-              background: 'var(--c-bg-input)', color: 'var(--c-text)', outline: 'none', fontFamily: 'Sarabun-Medium',
+              background: 'var(--c-bg-input)', color: 'var(--c-text)', outline: 'none', fontFamily: 'inherit',
               width: '100%', boxSizing: 'border-box', transition: 'border-color 0.2s, background 0.2s',
             }}
             onFocus={e => { e.target.style.borderColor = 'var(--c-accent-border)'; e.target.style.background = 'var(--c-bg-input-focus)'; }}
@@ -163,7 +163,7 @@ const DashboardTable = ({ points, onSelectFeature }) => {
         <div className="table-scroll" style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
           <table style={{ border: 'none', width: '100%', minWidth: 1400, borderCollapse: 'collapse', background: 'transparent', tableLayout: 'fixed' }}>
             <thead>
-              <tr style={{ height: 44, fontSize: 12, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
+              <tr style={{ height: 44, fontSize: 12, color: 'var(--c-text-secondary)', textTransform: 'none', letterSpacing: 0, whiteSpace: 'nowrap' }}>
                 <th style={{ padding: '8px 12px', textAlign: 'left', width: 130, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>วันที่เก็บตัวอย่าง</th>
                 <th style={{ padding: '8px 12px', textAlign: 'center', width: 90, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>เวลา</th>
                 <th style={{ padding: '8px 12px', textAlign: 'center', width: 300, position: 'sticky', top: 0, zIndex: 2, background: 'var(--c-bg-secondary)', borderBottom: '1px solid var(--c-border)', fontWeight: 600, whiteSpace: 'nowrap' }}>บริเวณพื้นที่เก็บตัวอย่าง</th>
@@ -231,7 +231,7 @@ const DashboardTable = ({ points, onSelectFeature }) => {
               padding: '40px 16px',
               boxSizing: 'border-box'
             }}>
-              <span style={{ fontSize: 32 }}>📋</span>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               <span style={{ fontSize: 14, fontWeight: 500, textAlign: 'center' }}>
                 {searchValue ? 'ไม่พบข้อมูลที่ค้นหา' : 'เลือกชั้นข้อมูลเพื่อแสดงรายการ'}
               </span>
@@ -243,7 +243,7 @@ const DashboardTable = ({ points, onSelectFeature }) => {
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'var(--c-bg-secondary)', borderTop: '1px solid var(--c-border)',
-          borderRadius: '0 0 16px 16px', padding: '10px 20px', fontSize: 13, color: 'var(--c-text-secondary)', minHeight: 48,
+          borderRadius: '0 0 14px 14px', padding: '10px 20px', fontSize: 13, color: 'var(--c-text-secondary)', minHeight: 48,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span>แสดง</span>
@@ -263,14 +263,14 @@ const DashboardTable = ({ points, onSelectFeature }) => {
             <button onClick={handlePrevPage} disabled={page === 0} style={{
               background: page === 0 ? 'transparent' : 'var(--c-accent-badge-bg)',
               border: `1px solid ${page === 0 ? 'var(--c-border-subtle)' : 'var(--c-accent-border)'}`,
-              color: page === 0 ? 'var(--c-text-muted)' : 'var(--c-accent-light)',
+              color: page === 0 ? 'var(--c-text-muted)' : 'var(--c-accent-text)',
               borderRadius: 6, width: 32, height: 32, fontSize: 16, cursor: page === 0 ? 'default' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
             }}>‹</button>
             <button onClick={handleNextPage} disabled={endIdx >= totalRows} style={{
               background: endIdx >= totalRows ? 'transparent' : 'var(--c-accent-badge-bg)',
               border: `1px solid ${endIdx >= totalRows ? 'var(--c-border-subtle)' : 'var(--c-accent-border)'}`,
-              color: endIdx >= totalRows ? 'var(--c-text-muted)' : 'var(--c-accent-light)',
+              color: endIdx >= totalRows ? 'var(--c-text-muted)' : 'var(--c-accent-text)',
               borderRadius: 6, width: 32, height: 32, fontSize: 16, cursor: endIdx >= totalRows ? 'default' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
             }}>›</button>

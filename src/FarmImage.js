@@ -158,10 +158,10 @@ const FarmImage = ({ farmName, authToken }) => {
                   onClick={() => handleDeleteOne(img.filename)}
                   style={{
                     position: 'absolute', top: 4, right: 4,
-                    background: 'rgba(220,38,38,0.85)', color: '#fff',
+                    background: 'rgba(255,59,48,0.9)', color: '#fff',
                     border: 'none', borderRadius: 4, padding: '2px 6px',
                     fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    fontFamily: 'Sarabun-Medium, sans-serif',
+                    fontFamily: 'var(--font-ui)',
                   }}
                 >
                   &#10005;
@@ -256,7 +256,7 @@ const FarmImage = ({ farmName, authToken }) => {
                 position: 'absolute', top: 20, left: 20,
                 background: 'rgba(255,255,255,0.15)', color: '#fff',
                 border: 'none', borderRadius: 8, padding: '6px 14px',
-                fontSize: 13, cursor: 'pointer', fontFamily: 'Sarabun-Medium, sans-serif',
+                fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-ui)',
               }}
             >
               {Math.round(zoom * 100)}% — รีเซ็ต
@@ -299,10 +299,10 @@ const FarmImage = ({ farmName, authToken }) => {
               onClick={(e) => { e.stopPropagation(); handleDeleteOne(images[fullscreenIdx].filename); }}
               style={{
                 position: 'absolute', top: 20, right: 70,
-                background: 'rgba(220,38,38,0.85)', color: '#fff',
+                background: 'rgba(255,59,48,0.9)', color: '#fff',
                 border: 'none', borderRadius: 8, padding: '8px 16px',
                 fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                fontFamily: 'Sarabun-Medium, sans-serif',
+                fontFamily: 'var(--font-ui)',
               }}
             >
               ลบรูปนี้
@@ -316,12 +316,12 @@ const FarmImage = ({ farmName, authToken }) => {
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--c-border-subtle)' }}>
           <label style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: 'var(--c-accent-bg)', color: 'var(--c-accent-light)',
+            background: 'var(--c-accent-bg)', color: 'var(--c-accent-text)',
             padding: '8px 16px', borderRadius: 8, fontSize: 13,
             fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
             border: '1px solid var(--c-accent-border)',
             opacity: uploading ? 0.7 : 1,
-            fontFamily: 'Sarabun-Medium, sans-serif',
+            fontFamily: 'var(--font-ui)',
           }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M7 1v9M4 4l3-3 3 3M2 10v2h10v-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -339,7 +339,7 @@ const FarmImage = ({ farmName, authToken }) => {
           {message && (
             <span style={{
               marginLeft: 10, fontSize: 12, fontWeight: 500,
-              color: message.includes('สำเร็จ') ? 'var(--c-green)' : '#dc2626',
+              color: message.includes('สำเร็จ') ? 'var(--c-green)' : '#ff3b30',
             }}>
               {message}
             </span>

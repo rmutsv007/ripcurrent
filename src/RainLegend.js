@@ -21,12 +21,14 @@ const RainLegend = () => {
       ref={ref}
       style={{
         position: 'absolute', right: 10, bottom: 24, zIndex: 1000,
-        background: 'var(--c-bg-primary)',
+        background: 'var(--c-popup-start)',
+        WebkitBackdropFilter: 'var(--blur-panel)',
+        backdropFilter: 'var(--blur-panel)',
         border: '1px solid var(--c-border)',
-        borderRadius: 8,
+        borderRadius: 14,
         padding: '10px 12px',
         boxShadow: 'var(--c-shadow-lg)',
-        fontFamily: 'Sarabun, sans-serif',
+        fontFamily: 'var(--font-ui)',
         width: 190,
       }}
     >

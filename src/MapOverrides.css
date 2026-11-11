@@ -33,36 +33,40 @@
 
 /* ปุ่ม +/- — ธีม aware ด้วย CSS variables */
 .leaflet-control-zoom a {
-  background: linear-gradient(135deg, var(--c-zoom-start) 0%, var(--c-zoom-end) 100%) !important;
+  background: var(--c-zoom-start) !important;
+  -webkit-backdrop-filter: var(--blur-panel);
+  backdrop-filter: var(--blur-panel);
   color: var(--c-zoom-text) !important;
-  border: 1px solid var(--c-accent-border) !important;
-  width: 36px !important;
-  height: 36px !important;
-  line-height: 36px !important;
+  border: 1px solid var(--c-border) !important;
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 32px !important;
   font-size: 16px !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
   box-shadow: var(--c-shadow) !important;
-  margin-bottom: 4px !important;
-  transition: all 0.25s ease !important;
+  margin-bottom: 6px !important;
+  transition: background var(--dur) var(--ease-out) !important;
 }
 
 /* hover: เปลี่ยน gradient */
 .leaflet-control-zoom a:hover {
-  background: linear-gradient(135deg, var(--c-zoom-hover-start) 0%, var(--c-zoom-hover-end) 100%) !important;
-  border-color: var(--c-accent-border) !important;
+  background: var(--c-zoom-hover-start) !important;
+  border-color: var(--c-border) !important;
 }
 
 /* active (กด): สีน้ำเงินเข้ม */
 .leaflet-control-zoom a:active {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
-  color: #fff !important;
+  background: var(--c-accent-bg-hover) !important;
+  color: var(--c-accent-text) !important;
 }
 
 /* === Map Popup — กล่องข้อมูลบนแผนที่ === */
 .leaflet-popup-content-wrapper {
-  background: linear-gradient(135deg, var(--c-popup-start) 0%, var(--c-popup-end) 100%) !important;
-  border-radius: 12px !important;
-  border: 1px solid var(--c-accent-border) !important;
+  background: var(--c-popup-start) !important;
+  -webkit-backdrop-filter: var(--blur-panel);
+  backdrop-filter: var(--blur-panel);
+  border-radius: var(--radius-l) !important;
+  border: 1px solid var(--c-border) !important;
   box-shadow: var(--c-shadow-lg) !important;
   color: var(--c-text) !important;
 }
@@ -71,41 +75,40 @@
 .leaflet-popup-content {
   position: relative !important;
   margin: 14px 42px 14px 14px !important;
-  font-family: 'Sarabun-Medium', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-family: var(--font-ui) !important;
   color: var(--c-text) !important;
 }
 
 /* หัวลูกศร popup (tip) */
 .leaflet-popup-tip {
   background: var(--c-popup-tip) !important;
-  border: 1px solid var(--c-accent-border) !important;
+  border: 1px solid var(--c-border) !important;
 }
 
 /* ปุ่มปิด popup (×) */
 .leaflet-popup-close-button {
   top: 13px !important;
   right: 10px !important;
-  width: 24px !important;
-  height: 24px !important;
+  width: 22px !important;
+  height: 22px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 0 !important;
-  border: 1px solid #dc2626 !important;
-  border-radius: 8px !important;
-  background: #fef2f2 !important;
-  color: #dc2626 !important;
-  font-size: 16px !important;
-  font-weight: 700 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  background: var(--c-bg-input) !important;
+  color: var(--c-text-secondary) !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
   line-height: 1 !important;
   box-sizing: border-box !important;
-  transition: all 0.2s ease !important;
+  transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out) !important;
 }
 
 .leaflet-popup-close-button:hover {
-  background: #fee2e2 !important;
-  border-color: #b91c1c !important;
-  color: #b91c1c !important;
+  background: var(--c-bg-input-focus) !important;
+  color: var(--c-text) !important;
 }
 
 /* === Tooltip — กล่องคำแนะนำ (hover บนแผนที่) === */
@@ -113,8 +116,10 @@
   background: var(--c-tooltip-bg) !important;
   color: var(--c-tooltip-text) !important;
   border: 1px solid var(--c-tooltip-border) !important;
-  border-radius: 6px !important;
-  font-family: 'Sarabun-Medium', sans-serif !important;
+  border-radius: var(--radius-s) !important;
+  -webkit-backdrop-filter: var(--blur-panel);
+  backdrop-filter: var(--blur-panel);
+  font-family: var(--font-ui) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
   padding: 4px 10px !important;
@@ -148,7 +153,7 @@
 
 /* ยกเว้น highlight ring — ต้องแสดง stroke */
 .leaflet-interactive.highlight-pulse-ring {
-  stroke: #3b82f6 !important;
+  stroke: #007aff !important;
   stroke-width: 3 !important;
 }
 
@@ -170,8 +175,8 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 3px solid #3b82f6;
-  background: rgba(59, 130, 246, 0.12);
+  border: 3px solid #007aff;
+  background: rgba(0, 122, 255, 0.12);
   animation: highlight-pulse 1.8s ease-in-out infinite;
   box-sizing: border-box;
 }
@@ -181,16 +186,16 @@
   top: -28px;
   left: 50%;
   transform: translateX(-50%);
-  background: #3b82f6;
+  background: #007aff;
   color: #fff;
   font-size: 12px;
-  font-weight: 700;
-  font-family: 'Sarabun-Medium', sans-serif;
+  font-weight: 600;
+  font-family: var(--font-ui);
   padding: 2px 10px;
   border-radius: 10px;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(59,130,246,0.3);
-  letter-spacing: 0.3px;
+  box-shadow: 0 2px 8px rgba(0,122,255,0.3);
+  letter-spacing: 0;
 }
 
 @keyframes highlight-pulse {

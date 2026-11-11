@@ -69,6 +69,34 @@ const waveIcon = new L.Icon({
   popupAnchor: [0, -16]
 });
 
+// ไอคอนเส้นบางแบบ SF Symbols (ใช้แทนอีโมจิ) — path เป็นค่าคงที่ในโค้ด
+const ICONS = {
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  droplet: '<path d="M12 2.7l5.7 5.7a8 8 0 1 1-11.3 0z"/>',
+  trending: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  mountain: '<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>',
+  map: '<polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>',
+  layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+};
+
+const Icon = ({ name, size = 16 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    style={{ flexShrink: 0 }}
+    dangerouslySetInnerHTML={{ __html: ICONS[name] }}
+  />
+);
+
 function getFeatureViewTarget(feature) {
   if (!feature) return null;
   try {
@@ -572,15 +600,15 @@ function App() {
 
         <div className="header-right">
           <div className="visitor-badge" title="จำนวนการเข้าชมระบบ">
-            <span style={{ fontSize: '14px' }}>👁️</span>
+            <Icon name="eye" size={14} />
             <span>{visitorCount.toLocaleString()}</span>
           </div>
 
           {/* ส่วนจัดการบัญชี (เข้าสู่ระบบ / ออกจากระบบ) */}
           {authToken ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13, color: 'var(--c-text)', fontFamily: 'Sarabun-Medium', fontWeight: 600 }}>
-                👋 {authUser}
+              <span style={{ fontSize: 13, color: 'var(--c-text)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="user" size={14} /> {authUser}
               </span>
               <button
                 className="auth-btn logout"
@@ -591,7 +619,7 @@ function App() {
                   setAuthUser(null);
                 }}
               >
-                <span style={{ fontSize: '14px' }}>🚪</span>
+                <Icon name="logout" size={15} />
                 <span className="auth-text">ออกจากระบบ</span>
               </button>
             </div>
@@ -657,12 +685,12 @@ function App() {
       <main className="app-main">
         <aside 
           className={`sidebar-aside ${mobileSidebarOpen ? 'drawer-open' : ''}`}
-          style={{ width: 220, minWidth: 220 }}
+          style={{ width: 234, minWidth: 234 }}
         >
           {/* แถบปิด Drawer สำหรับมือถือ */}
           <div className="drawer-close-btn">
-            <span>📂 ชั้นข้อมูล</span>
-            <button onClick={() => setMobileSidebarOpen(false)}>✕ ปิด</button>
+            <span>ชั้นข้อมูล</span>
+            <button onClick={() => setMobileSidebarOpen(false)}>ปิด</button>
           </div>
           <Sidebar
             onLayerChange={ids => { setSelectedLayerIds(ids); mapRef.current?.closePopup(); hideHighlight(); }}
@@ -689,26 +717,26 @@ function App() {
               />
 
               {/* ส่วนควบคุมมุมขวาบน */}
-              <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, fontFamily: 'Sarabun-Medium, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+              <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, fontFamily: 'var(--font-ui)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                 <button
                   onClick={() => setBasemapOpen(v => !v)}
                   style={{ 
-                    background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', 
-                    borderRadius: 8, padding: 0, fontSize: 13, fontWeight: 700, 
+                    background: 'var(--c-zoom-start)', WebkitBackdropFilter: 'var(--blur-panel)', backdropFilter: 'var(--blur-panel)', border: '1px solid var(--c-border)', 
+                    borderRadius: 10, padding: 0, fontSize: 13, fontWeight: 600, 
                     color: 'var(--c-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', 
                     boxShadow: 'var(--c-shadow)', fontFamily: 'inherit',
-                    width: 54, height: 38, boxSizing: 'border-box'
+                    width: 54, height: 34, boxSizing: 'border-box'
                   }}
                 >
                   {selectedBasemap.label}
                 </button>
                 {basemapOpen && (
-                  <div style={{ background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', borderRadius: 8, padding: 4, boxShadow: 'var(--c-shadow-lg)', minWidth: 140 }}>
+                  <div style={{ background: 'var(--c-zoom-start)', WebkitBackdropFilter: 'var(--blur-panel)', backdropFilter: 'var(--blur-panel)', border: '1px solid var(--c-border)', borderRadius: 12, padding: 4, boxShadow: 'var(--c-shadow-lg)', minWidth: 140 }}>
                     {BASEMAPS.map(b => (
                       <div
                         key={b.id}
                         onClick={() => { basemapManualRef.current = true; setBasemapId(b.id); setBasemapOpen(false); }}
-                        style={{ padding: '8px 12px', fontSize: 12, fontWeight: b.id === basemapId ? 700 : 500, color: b.id === basemapId ? 'var(--c-accent-light)' : 'var(--c-text)', background: b.id === basemapId ? 'var(--c-accent-bg)' : 'transparent', borderRadius: 6, cursor: 'pointer' }}
+                        style={{ padding: '8px 12px', fontSize: 12, fontWeight: b.id === basemapId ? 600 : 400, color: b.id === basemapId ? 'var(--c-accent-text)' : 'var(--c-text)', background: b.id === basemapId ? 'var(--c-accent-bg)' : 'transparent', borderRadius: 8, cursor: 'pointer' }}
                       >
                         {b.fullLabel || b.label}
                       </div>
@@ -721,10 +749,10 @@ function App() {
                   onClick={zoomToActiveExtent}
                   title="ซูมพอดีขอบเขตข้อมูลทั้งหมด (Fit Extent)"
                   style={{ 
-                    background: 'var(--c-bg-primary)', border: '1px solid var(--c-border)', 
-                    borderRadius: 8, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'var(--c-zoom-start)', WebkitBackdropFilter: 'var(--blur-panel)', backdropFilter: 'var(--blur-panel)', border: '1px solid var(--c-border)', 
+                    borderRadius: 10, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', boxShadow: 'var(--c-shadow)', color: 'var(--c-text)', 
-                    width: 54, height: 38, boxSizing: 'border-box',
+                    width: 54, height: 34, boxSizing: 'border-box',
                     transition: 'all 0.2s'
                   }}
                 >
@@ -789,7 +817,7 @@ function App() {
                   }}
                 >
                   <Tooltip direction="top" offset={[0, -16]} opacity={1}>
-                    <div style={{ fontFamily: 'Sarabun-Medium, sans-serif', fontSize: '13px' }}>
+                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: '13px' }}>
                       <strong>{feature.properties.location || 'สถานีคลื่นทะเล'}</strong>
                     </div>
                   </Tooltip>
@@ -814,28 +842,28 @@ function App() {
           
           {(!dashboardCollapsed || mobileTab === 'data') && (
             <div className="dashboard-inner-container" style={{ flex: 1, width: '100%', padding: '16px 16px 16px 8px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'inline-flex', gap: 4, marginBottom: 12, background: 'var(--c-bg-secondary)', padding: 4, borderRadius: 12, alignSelf: 'flex-start', width: '100%' }}>
+              <div style={{ display: 'flex', width: '100%', marginBottom: 0, alignSelf: 'flex-start' }}>
                 {/* แถบเมนู Dashboard Tabs (อัปเกรดดีไซน์ใหม่) */}
                 <div className="dashboard-tab-container">
                   <button
                     className={`dashboard-tab-btn ${dashboardTab === 'table' ? 'active' : ''}`}
                     onClick={() => setDashboardTab('table')}
                   >
-                    <span className="tab-icon">📋</span> คุณภาพน้ำ
+                    <span className="tab-icon"><Icon name="droplet" size={15} /></span> คุณภาพน้ำ
                   </button>
                   
                   <button
                     className={`dashboard-tab-btn ${dashboardTab === 'graph' ? 'active' : ''}`}
                     onClick={() => setDashboardTab('graph')}
                   >
-                    <span className="tab-icon">📈</span> แนวโน้มผลตรวจ
+                    <span className="tab-icon"><Icon name="trending" size={15} /></span> แนวโน้มผลตรวจ
                   </button>
                   
                   <button
                     className={`dashboard-tab-btn ${dashboardTab === 'crossection' ? 'active' : ''}`}
                     onClick={() => setDashboardTab('crossection')}
                   >
-                    <span className="tab-icon">⛰️</span> Cross Section
+                    <span className="tab-icon"><Icon name="mountain" size={15} /></span> Cross Section
                   </button>
                 </div>
               </div>
@@ -878,35 +906,35 @@ function App() {
             zoomToActiveExtent();
           }}
         >
-          <span className="nav-icon">🗺️</span>
+          <span className="nav-icon"><Icon name="map" size={20} /></span>
           <span>แผนที่</span>
         </button>
         <button 
           className={`mobile-nav-item ${mobileTab === 'data' && dashboardTab === 'table' ? 'active' : ''}`}
           onClick={() => { setDashboardTab('table'); setMobileTab('data'); }}
         >
-          <span className="nav-icon">📋</span>
+          <span className="nav-icon"><Icon name="droplet" size={20} /></span>
           <span>คุณภาพน้ำ</span>
         </button>
         <button 
           className={`mobile-nav-item ${mobileTab === 'data' && dashboardTab === 'graph' ? 'active' : ''}`}
           onClick={() => { setDashboardTab('graph'); setMobileTab('data'); }}
         >
-          <span className="nav-icon">📈</span>
+          <span className="nav-icon"><Icon name="trending" size={20} /></span>
           <span>แนวโน้ม</span>
         </button>
         <button 
           className={`mobile-nav-item ${mobileTab === 'data' && dashboardTab === 'crossection' ? 'active' : ''}`}
           onClick={() => { setDashboardTab('crossection'); setMobileTab('data'); }}
         >
-          <span className="nav-icon">⛰️</span>
+          <span className="nav-icon"><Icon name="mountain" size={20} /></span>
           <span>Cross Section</span>
         </button>
         <button 
           className="mobile-nav-item"
           onClick={() => setMobileSidebarOpen(true)}
         >
-          <span className="nav-icon">🗂️</span>
+          <span className="nav-icon"><Icon name="layers" size={20} /></span>
           <span>ชั้นข้อมูล</span>
         </button>
       </nav>

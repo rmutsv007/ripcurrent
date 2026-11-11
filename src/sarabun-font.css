@@ -1,3 +1,4 @@
+/* ฟอนต์เดิม — ยังใช้อยู่ในบางส่วนของแอป */
 @font-face {
   font-family: 'Sarabun-Medium';
   src: url('../public/fonts/Sarabun-Medium.ttf') format('truetype');
@@ -5,6 +6,36 @@
   font-style: normal;
 }
 
+/* Sarabun เฉพาะอักษรไทย (U+0E00–0E7F) ให้ภาษาอังกฤษ/ตัวเลขใช้ฟอนต์ระบบแบบ macOS */
+@font-face {
+  font-family: 'Sarabun-Thai';
+  src: url('../public/fonts/Sarabun-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  unicode-range: U+0E00-0E7F;
+}
+@font-face {
+  font-family: 'Sarabun-Thai';
+  src: url('../public/fonts/Sarabun-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  unicode-range: U+0E00-0E7F;
+}
+@font-face {
+  font-family: 'Sarabun-Thai';
+  src: url('../public/fonts/Sarabun-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  unicode-range: U+0E00-0E7F;
+}
+@font-face {
+  font-family: 'Sarabun-Thai';
+  src: url('../public/fonts/Sarabun-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  unicode-range: U+0E00-0E7F;
+}
+
 body, html, .app-farmmap, .dashboard-table-container, .sidebar-container, .sidebar-content, .layer-item, .farmmap-header, .farmmap-title, .farmmap-card, .farmmap-detail, .farmmap-grid, .farmmap-sidebar, .farmmap-main, .farmmap-badge, .farmmap-header-icon, .farmmap-table, .farmmap-table th, .farmmap-table td {
-  font-family: 'Sarabun-Medium', sans-serif !important;
+  font-family: var(--font-ui) !important;
 }
